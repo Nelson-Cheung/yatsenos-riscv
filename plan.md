@@ -18,3 +18,6 @@
 + 系统调用，用户线程，fork/wait/exit
 + ......
 
+## 迁移进度
+1. uart输出。
+2. supervisor

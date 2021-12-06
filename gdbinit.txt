@@ -1,7 +1,7 @@
 file kernel.elf
 target remote:1234
 b _start
-b machine_interrupt_handler
-b supervisor_interrupt_handler
+b _machine_interrupt_handler
+b _supervisor_interrupt_handler
 layout src
 layout regs

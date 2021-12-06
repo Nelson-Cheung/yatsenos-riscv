@@ -24,3 +24,10 @@ char UART::getchar()
         ;
     return uart[UART_RHR];
 }
+
+void UART::putstr(const char *s) {
+    while (*s) {
+        putchar(*s);
+        ++s;
+    }
+}

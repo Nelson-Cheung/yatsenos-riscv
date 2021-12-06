@@ -3,7 +3,7 @@ VPATH = driver include kernel
 PREFIX = riscv64-unknown-linux-gnu
 CXX = $(PREFIX)-g++
 INCLUDE = include
-CXX_FLAGS = -c -g -Wall -nostdlib -O0 -I$(INCLUDE) -fno-builtin -ffreestanding -fno-pic
+CXX_FLAGS = -c -g -Wall -nostdlib -O0 -I$(INCLUDE) -fno-builtin -ffreestanding -fno-pic -mcmodel=medany
 
 
 AS = $(PREFIX)-as
@@ -15,6 +15,7 @@ OBJ += driver.o uart.o init.o
 
 $(TARGET) : $(OBJ)
 	$(LD) $^ -Ttext 0x80000000 -e _start -o $@
+	# $(LD) $^ -T kernel.ld -e _start -o $@
 
 driver.o : driver.cpp driver.h
 	$(CXX) $(CXX_FLAGS) $< -o $@

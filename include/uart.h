@@ -22,6 +22,7 @@ class UART {
         void initialize();
         void putchar(char c);
         char getchar();
+        void putstr(const char *s);
 };
 
 #endif

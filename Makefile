@@ -11,11 +11,20 @@ LD = $(PREFIX)-ld
 
 TARGET = kernel.elf
 OBJ = start.o
-OBJ += driver.o uart.o init.o 
+OBJ += driver.o uart.o init.o asm_utils.o interrupt.o clint.o
 
 $(TARGET) : $(OBJ)
 	$(LD) $^ -Ttext 0x80000000 -e _start -o $@
 	# $(LD) $^ -T kernel.ld -e _start -o $@
+
+clint.o: clint.cpp clint.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+	
+interrupt.o: interrupt.cpp interrupt.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+asm_utils.o: asm_utils.s
+	$(AS) -g $< -o $@
 
 driver.o : driver.cpp driver.h
 	$(CXX) $(CXX_FLAGS) $< -o $@

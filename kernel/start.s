@@ -53,4 +53,4 @@ _supervisor_interrupt_handler:
     j _supervisor_interrupt_handler
 
 .data
-stack0 : .word 4096
+stack0 : .dword 4096

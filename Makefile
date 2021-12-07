@@ -11,15 +11,26 @@ LD = $(PREFIX)-ld
 
 TARGET = kernel.elf
 OBJ = start.o
-OBJ += driver.o uart.o init.o asm_utils.o interrupt.o clint.o timer.o utils.o
+OBJ += driver.o uart.o init.o asm_utils.o interrupt.o clint.o timer.o utils.o \
+address_pool.o bitmap.o mem.o
+
 
 $(TARGET) : $(OBJ)
 	$(LD) $^ -Ttext 0x80000000 -e _start -o $@
 	# $(LD) $^ -T kernel.ld -e _start -o $@
 
-utils.o: utils.cpp utils.h
+address_pool.o: address_pool.cpp address_pool.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+bitmap.o: bitmap.cpp bitmap.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+mem.o: mem.cpp mem.h
 	$(CXX) $(CXX_FLAGS) $< -o $@
 	
+utils.o: utils.cpp utils.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
 timer.o: timer.cpp timer.h
 	$(CXX) $(CXX_FLAGS) $< -o $@
 

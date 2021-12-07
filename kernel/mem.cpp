@@ -1,7 +1,6 @@
 #include "mem.h"
 #include "constant.h"
 #include "utils.h"
-#include "asm_utils.h"
 #include "driver.h"
 #include "object.h"
 
@@ -26,17 +25,21 @@ void MemoryManager::initialize()
 
     // 剩余的空闲的内存
     int freeMemory = this->totalMemory - usedMemory;
-
     int freePages = freeMemory / PAGE_SIZE;
+    int bitmapBytes = ceil(freePages, 8);
+
+    freeMemory -= bitmapBytes;
+    freePages = freeMemory / PAGE_SIZE;
+
     int kernelPages = freePages / 2;
     int userPages = freePages - kernelPages;
 
-    int kernelPhysicalStartAddress = usedMemory;
-    int userPhysicalStartAddress = usedMemory + kernelPages * PAGE_SIZE;
+    unsigned long kernelPhysicalStartAddress = DRAM_BASE + usedMemory + bitmapBytes;
+    unsigned long userPhysicalStartAddress =  kernelPhysicalStartAddress + kernelPages * PAGE_SIZE;
 
-    int kernelPhysicalBitMapStart = BITMAP_START_ADDRESS;
-    int userPhysicalBitMapStart = kernelPhysicalBitMapStart + ceil(kernelPages, 8);
-    int kernelVirtualBitMapStart = userPhysicalBitMapStart + ceil(userPages, 8);
+    unsigned long kernelPhysicalBitMapStart = DRAM_BASE + usedMemory;
+    unsigned long userPhysicalBitMapStart = kernelPhysicalBitMapStart + ceil(kernelPages, 8);
+    // int kernelVirtualBitMapStart = userPhysicalBitMapStart + ceil(userPages, 8);
 
     kernelPhysical.initialize(
         (char *)kernelPhysicalBitMapStart,
@@ -48,10 +51,10 @@ void MemoryManager::initialize()
         userPages,
         userPhysicalStartAddress);
 
-    kernelVirtual.initialize(
-        (char *)kernelVirtualBitMapStart,
-        kernelPages,
-        KERNEL_VIRTUAL_START);
+    // kernelVirtual.initialize(
+    //     (char *)kernelVirtualBitMapStart,
+    //     kernelPages,
+    //     KERNEL_VIRTUAL_START);
 
     printf("total memory: %d bytes ( %d MB )\n",
            this->totalMemory,
@@ -73,13 +76,13 @@ void MemoryManager::initialize()
            userPages, userPages * PAGE_SIZE / 1024 / 1024,
            userPhysicalBitMapStart);
 
-    printf("kernel virtual pool\n"
-           "    start address: 0x%x\n"
-           "    total pages: %d  ( %d MB ) \n"
-           "    bit map start address: 0x%x\n",
-           KERNEL_VIRTUAL_START,
-           userPages, kernelPages * PAGE_SIZE / 1024 / 1024,
-           kernelVirtualBitMapStart);
+    // printf("kernel virtual pool\n"
+    //        "    start address: 0x%x\n"
+    //        "    total pages: %d  ( %d MB ) \n"
+    //        "    bit map start address: 0x%x\n",
+    //        KERNEL_VIRTUAL_START,
+    //        userPages, kernelPages * PAGE_SIZE / 1024 / 1024,
+    //        kernelVirtualBitMapStart);
 }
 
 // int MemoryManager::allocatePhysicalPages(enum AddressPoolType type, const int count)
@@ -111,22 +114,10 @@ void MemoryManager::initialize()
 //     }
 // }
 
-// int MemoryManager::getTotalMemory()
-// {
-
-//     if (!this->totalMemory)
-//     {
-//         int memory = *((int *)MEMORY_SIZE_ADDRESS);
-//         // ax寄存器保存的内容
-//         int low = memory & 0xffff;
-//         // bx寄存器保存的内容
-//         int high = (memory >> 16) & 0xffff;
-
-//         this->totalMemory = low * 1024 + high * 64 * 1024;
-//     }
-
-//     return this->totalMemory;
-// }
+int MemoryManager::getTotalMemory()
+{
+    return this->totalMemory;
+}
 
 // void MemoryManager::openPageMechanism()
 // {

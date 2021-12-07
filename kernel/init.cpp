@@ -2,8 +2,10 @@
 #include "rv64.h"
 #include "interrupt.h"
 #include "utils.h"
+#include "mem.h"
 
 Driver driver;
+MemoryManager memory_manager;
 
 extern "C" void rv64_kernel_init()
 {
@@ -27,12 +29,14 @@ extern "C" void rv64_kernel_init()
     // driver.uart.putstr("#    #   #  #     # #     #         # #\n");
     // driver.uart.putstr("#     # ###  #####   #####           #\n");
 
-    printf("print percentage: %%\n"
-           "print char \"N\": %c\n"
-           "print string \"Hello World!\": %s\n"
-           "print decimal: \"-1234\": %d\n"
-           "print hexadecimal \"0x7abcdef0\": %x\n",
-           'N', "Hello World!", -1234, 0x7abcdef0);
+    // printf("print percentage: %%\n"
+    //        "print char \"N\": %c\n"
+    //        "print string \"Hello World!\": %s\n"
+    //        "print decimal: \"-1234\": %d\n"
+    //        "print hexadecimal \"0x7abcdef0\": %x\n",
+    //        'N', "Hello World!", -1234, 0x7abcdef0);
+
+    memory_manager.initialize();
 }
 
 extern "C" void kernel_entry()

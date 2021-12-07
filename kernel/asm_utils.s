@@ -4,6 +4,85 @@
 .global write_sstatus
 .global read_sstatus
 .global read_scause
+.global write_sepc
+.global read_sepc
+.global write_sie
+.global read_sie
+.global write_mip
+.global read_mip
+.global read_mcause
+.global write_sip
+.global read_sip
+.global read_mepc
+.global write_mepc
+.global supervisor_timer_interrupt_done
+
+# extern "C" unsigned long read_mepc();
+read_mepc:
+    csrr a0, mepc
+    ret
+
+# extern "C" void write_mepc(unsigned long);
+write_mepc:
+    csrw mepc, a0
+    ret
+
+# extern "C" void supervisor_timer_interrupt_done();
+supervisor_timer_interrupt_done:
+    addi sp, sp, -8
+    sd ra, 0(sp)
+
+    csrr a0, scause
+    ecall
+
+    ld ra, 0(sp)
+    addi sp, sp, 8
+    ret
+
+# extern "C" void write_sip(unsigned long);
+write_sip:
+    csrw sip, a0
+    ret
+
+# extern "C" unsigned long read_sip();
+read_sip:
+    csrr a0, sip
+    ret
+
+# extern "C" unsigned long read_mcause();
+read_mcause:
+    csrr a0, mcause
+    ret
+
+# extern "C" void write_mip(unsigned long);
+write_mip:
+    csrw mip, a0
+    ret
+
+# extern "C" unsigned long read_mip();
+read_mip:
+    csrr a0, mip
+    ret
+
+# extern "C" void write_sie(unsigned long);
+write_sie:
+    csrw sie, a0
+    ret
+
+# extern "C" unsigned long read_sie();
+read_sie:
+    csrr a0, sie
+    ret
+
+# extern "C" void write_sepc(unsigned long);
+write_sepc:
+    csrw sepc, a0
+    ret
+    
+# extern "C" unsigned long read_sepc();
+read_sepc:
+    csrr a0, sepc
+    ret
 
 # extern "C" void write_stvec(long val);
 write_stvec:
@@ -66,12 +145,6 @@ asm_interrupt_handler:
 
     call supervisor_interrupt_handler
 
-    # ecall发生时，sepc存储的地址是ecall的地址
-    # 不是ecall的下一条指令的地址
-    csrr t0, sepc
-    addi t0, t0, 4
-    csrw sepc, t0
-    
     ld x1, 8 * 1 (sp)
     ld x2, 8 * 2 (sp)
     ld x3, 8 * 3 (sp)

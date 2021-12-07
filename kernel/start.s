@@ -21,9 +21,15 @@ _start:
 
     # 将M mode的中断转发到S mode中处理
     li t0, 0x222
-    csrw mideleg, t0
-    li t0, 0xb3ff
-    csrw medeleg, t0
+    csrs mideleg, t0
+    li t0, 0xb1ff
+    csrs medeleg, t0
+
+    # enable interrupt
+    li t0, 0xaa
+    csrs mstatus, t0
+    li t0, 0xaaa
+    csrs mie, t0
 
     # 从M mode进入S mode
     li t0, 3 << 11
@@ -41,10 +47,8 @@ _finish:
     j _finish
 
 _machine_interrupt_handler:
-    csrr t0, mstatus
-    csrr t1, mip
-    csrr t2, mcause
-    j _machine_interrupt_handler
+    call machine_interrupt_handler
+    mret
 
 _supervisor_interrupt_handler:
     csrr t0, sstatus

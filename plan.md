@@ -21,8 +21,14 @@
 ## 迁移进度
 1. uart输出。
 2. supervisor
-3. 中断
+3. 中断，时钟中断
+4. 
 
 ## 局限性
-1. 不支持中断嵌套
-2. 
+1. 假设内核不超过1MB
+2. 不支持中断嵌套
+
+
+## 问题
+1. 从M mode进入S mode前需要关闭PMP，否则会发生illegal instruction
+2. timer无法转发到S mode，转发的方法是在M mode中设置mtimecmp为最大值，然后设置mip的stip，mret后即可转发到S mode。S mode处理完成后，通过ecall进入M mode，在M mode中clear stip，从而完成整个时钟中断的处理。

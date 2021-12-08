@@ -21,13 +21,6 @@ extern "C" void rv64_kernel_init()
     // mtimecmp = driver.timer.read_mtimecmp();
     // driver.timer.write_mtimecmp(mtime + 20000);
 
-    // printf("print percentage: %%\n"
-    //        "print char \"N\": %c\n"
-    //        "print string \"Hello World!\": %s\n"
-    //        "print decimal: \"-1234\": %d\n"
-    //        "print hexadecimal \"0x7abcdef0\": %x\n",
-    //        'N', "Hello World!", -1234, 0x7abcdef0);
-
     memory_manager.initialize();
 }
 
@@ -43,4 +36,13 @@ extern "C" void kernel_entry()
     printf("#   #    #        # #              #   #\n");
     printf("#    #   #  #     # #     #         # #\n");
     printf("#     # ###  #####   #####           #\n");
+    
+    printf("print percentage: %%\n"
+           "print char \"N\": %c\n"
+           "print string \"Hello World!\": %s\n"
+           "print decimal: \"-1234\": %d\n"
+           "print hexadecimal \"0x7abcdef0\": %x\n"
+           "print long decimal: \"-122147483647\": %ld\n"
+           "pritn long hexadecimal \"0x123456789a\": %lx\n",
+           'N', "Hello World!", -1234, 0x7abcdef0, -122147483647, 0x123456789a);
 }

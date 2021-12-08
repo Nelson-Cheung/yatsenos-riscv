@@ -19,6 +19,8 @@ void swap(T &x, T &y);
  */
 
 void itos(char *numStr, unsigned int num, unsigned int mod);
+void litos(char *numStr, unsigned long num, unsigned long mod);
+
 // 将从memory开始的length个字节设置为value
 void memset(void *memory, char value, int length);
 // 上取整

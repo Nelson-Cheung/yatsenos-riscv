@@ -1,18 +1,19 @@
 #include "utils.h"
 
-template<typename T>
-void swap(T &x, T &y) {
+template <typename T>
+void swap(T &x, T &y)
+{
     T z = x;
     x = y;
     y = z;
 }
 
-
-void itos(char *numStr, unsigned int num, unsigned int mod) {
-    
+void itos(char *numStr, unsigned int num, unsigned int mod)
+{
 
     // 只能转换2~26进制的整数
-    if (mod < 2 || mod > 26 || num < 0) {
+    if (mod < 2 || mod > 26 || num < 0)
+    {
         return;
     }
 
@@ -20,7 +21,8 @@ void itos(char *numStr, unsigned int num, unsigned int mod) {
 
     // 进制转换
     length = 0;
-    while(num) {
+    while (num)
+    {
         temp = num % mod;
         num /= mod;
         numStr[length] = temp > 9 ? temp - 10 + 'A' : temp + '0';
@@ -28,13 +30,51 @@ void itos(char *numStr, unsigned int num, unsigned int mod) {
     }
 
     // 特别处理num=0的情况
-    if(!length) {
+    if (!length)
+    {
         numStr[0] = '0';
         ++length;
     }
 
     // 将字符串倒转，使得numStr[0]保存的是num的高位数字
-    for(int i = 0, j = length - 1; i < j; ++i, --j) {
+    for (int i = 0, j = length - 1; i < j; ++i, --j)
+    {
+        swap(numStr[i], numStr[j]);
+    }
+
+    numStr[length] = '\0';
+}
+
+void litos(char *numStr, unsigned long num, unsigned long mod)
+{
+    // 只能转换2~26进制的整数
+    if (mod < 2 || mod > 26 || num < 0)
+    {
+        return;
+    }
+
+    unsigned long length, temp;
+
+    // 进制转换
+    length = 0;
+    while (num)
+    {
+        temp = num % mod;
+        num /= mod;
+        numStr[length] = temp > 9 ? temp - 10 + 'A' : temp + '0';
+        ++length;
+    }
+
+    // 特别处理num=0的情况
+    if (!length)
+    {
+        numStr[0] = '0';
+        ++length;
+    }
+
+    // 将字符串倒转，使得numStr[0]保存的是num的高位数字
+    for (int i = 0, j = length - 1; i < j; ++i, --j)
+    {
         swap(numStr[i], numStr[j]);
     }
 
@@ -49,7 +89,8 @@ void memset(void *memory, char value, int length)
     }
 }
 
-int ceil(const int dividend, const int divisor) {
+int ceil(const int dividend, const int divisor)
+{
     return (dividend + divisor - 1) / divisor;
 }
 
@@ -74,10 +115,11 @@ int printf_add_to_buffer(char *buffer, char c, int &idx, const int BUF_LEN)
 
 int printf(const char *const fmt, ...)
 {
-    const int BUF_LEN = 32;
+    const int BUF_LEN = 64;
 
     char buffer[BUF_LEN + 1];
     char number[33];
+    char long_number[65];
 
     int idx;
     va_list ap;
@@ -124,6 +166,7 @@ int printf(const char *const fmt, ...)
 
             case 'd':
             case 'x':
+            {
                 int temp = va_arg(ap, int);
 
                 if (temp < 0 && fmt[i] == 'd')
@@ -141,6 +184,33 @@ int printf(const char *const fmt, ...)
                     printf_add_to_buffer(buffer, number[j], idx, BUF_LEN);
                 }
                 break;
+            }
+            case 'l':
+            {
+                ++i;
+                if (fmt[i] != 'd' && fmt[i] != 'x')
+                {
+                    break;
+                }
+
+                long temp = va_arg(ap, long);
+
+                if (temp < 0 && fmt[i] == 'd')
+                {
+                    // counter += printf_add_to_buffer(buffer, '-', idx, BUF_LEN);
+                    printf_add_to_buffer(buffer, '-', idx, BUF_LEN);
+                    temp = -temp;
+                }
+
+                litos(long_number, temp, (fmt[i] == 'd' ? 10 : 16));
+
+                for (int j = 0; long_number[j]; ++j)
+                {
+                    // counter += printf_add_to_buffer(buffer, number[j], idx, BUF_LEN);
+                    printf_add_to_buffer(buffer, long_number[j], idx, BUF_LEN);
+                }
+                break;
+            }
             }
         }
     }

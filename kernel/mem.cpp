@@ -21,8 +21,7 @@ unsigned long MemoryManager::init_physical_space()
     this->totalMemory = MEMORY_SIZE;
 
     // 预留的内存
-    unsigned long usedMemory = (ceil(KERNEL_SIZE, PAGE_SIZE) + 1) * PAGE_SIZE;
-    l2_page_table = (unsigned long *)(DRAM_BASE + ceil(KERNEL_SIZE, PAGE_SIZE) * PAGE_SIZE);
+    unsigned long usedMemory = KERNEL_SIZE;
 
     if (this->totalMemory < usedMemory)
     {
@@ -206,6 +205,7 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 void MemoryManager::initialize()
 {
     unsigned long used = init_physical_space();
+    l2_page_table = (unsigned long *)allocatePhysicalPages(AddressPoolType::KERNEL, 1);
     memset(l2_page_table, 0, PAGE_SIZE);
 
     pair<unsigned long, unsigned long> clint, uart, kernel;

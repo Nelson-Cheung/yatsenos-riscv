@@ -59,6 +59,7 @@ debug : $(TARGET)
 	qemu-system-riscv64 -machine virt -kernel $(TARGET) -bios none -nographic -s -S
 
 run : $(TARGET)
+	clear
 	qemu-system-riscv64 -machine virt -kernel $(TARGET) -bios none -nographic
 
 clean :

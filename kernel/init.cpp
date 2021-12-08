@@ -21,14 +21,6 @@ extern "C" void rv64_kernel_init()
     // mtimecmp = driver.timer.read_mtimecmp();
     // driver.timer.write_mtimecmp(mtime + 20000);
 
-    // driver.uart.putstr("######  ###  #####   #####        #     #\n");
-    // driver.uart.putstr("#     #  #  #     # #     #       #     #\n");
-    // driver.uart.putstr("#     #  #  #       #             #     #\n");
-    // driver.uart.putstr("######   #   #####  #       ##### #     #\n");
-    // driver.uart.putstr("#   #    #        # #              #   #\n");
-    // driver.uart.putstr("#    #   #  #     # #     #         # #\n");
-    // driver.uart.putstr("#     # ###  #####   #####           #\n");
-
     // printf("print percentage: %%\n"
     //        "print char \"N\": %c\n"
     //        "print string \"Hello World!\": %s\n"
@@ -42,4 +34,13 @@ extern "C" void rv64_kernel_init()
 extern "C" void kernel_entry()
 {
     rv64_kernel_init();
+    printf("initialization finish\n");
+
+    printf("######  ###  #####   #####        #     #\n");
+    printf("#     #  #  #     # #     #       #     #\n");
+    printf("#     #  #  #       #             #     #\n");
+    printf("######   #   #####  #       ##### #     #\n");
+    printf("#   #    #        # #              #   #\n");
+    printf("#    #   #  #     # #     #         # #\n");
+    printf("#     # ###  #####   #####           #\n");
 }

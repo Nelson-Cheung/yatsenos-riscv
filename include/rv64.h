@@ -30,4 +30,6 @@ extern "C" unsigned long read_sip();
 
 extern "C" void supervisor_timer_interrupt_done();
 
+extern "C" void write_satp(unsigned long);
+
 #endif

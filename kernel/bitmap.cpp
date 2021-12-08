@@ -5,31 +5,31 @@ BitMap::BitMap()
 {
 }
 
-void BitMap::initialize(char *bitmap, const int length)
+void BitMap::initialize(char *bitmap, unsigned long length)
 {
     this->bitmap = bitmap;
     this->length = length;
 
-    int bytes = ceil(length, 8);
+    unsigned long bytes = ceil(length, 8);
 
-    for (int i = 0; i < bytes; ++i)
+    for (unsigned long i = 0; i < bytes; ++i)
     {
         bitmap[i] = 0;
     }
 }
 
-bool BitMap::get(const int index) const
+bool BitMap::get(unsigned long index) const
 {
-    int pos = index / 8;
-    int offset = index % 8;
+    unsigned long pos = index / 8;
+    unsigned long offset = index % 8;
 
     return (bitmap[pos] & (1 << offset));
 }
 
-void BitMap::set(const int index, const bool status)
+void BitMap::set(unsigned long index, const bool status)
 {
-    int pos = index / 8;
-    int offset = index % 8;
+    unsigned long pos = index / 8;
+    unsigned long offset = index % 8;
 
     // 清0
     bitmap[pos] = bitmap[pos] & (~(1 << offset));
@@ -41,12 +41,12 @@ void BitMap::set(const int index, const bool status)
     }
 }
 
-int BitMap::allocate(const int count)
+unsigned long BitMap::allocate(unsigned long count)
 {
     if (count == 0)
         return -1;
 
-    int index, empty, start;
+    unsigned long index, empty, start;
 
     index = 0;
     while (index < length)
@@ -72,7 +72,7 @@ int BitMap::allocate(const int count)
         // 存在连续的count个资源
         if (empty == count)
         {
-            for (int i = 0; i < count; ++i)
+            for (unsigned long i = 0; i < count; ++i)
             {
                 set(start + i, true);
             }
@@ -84,9 +84,9 @@ int BitMap::allocate(const int count)
     return -1;
 }
 
-void BitMap::release(const int index, const int count)
+void BitMap::release(unsigned long index, unsigned long count)
 {
-    for (int i = 0; i < count; ++i)
+    for (unsigned long i = 0; i < count; ++i)
     {
         set(index + i, false);
     }
@@ -97,7 +97,7 @@ char *BitMap::getBitmap()
     return (char *)bitmap;
 }
 
-int BitMap::size() const
+unsigned long BitMap::size() const
 {
     return length;
 }

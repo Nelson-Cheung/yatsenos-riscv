@@ -3,19 +3,27 @@
 #include "utils.h"
 #include "driver.h"
 #include "object.h"
+#include "uart.h"
+#include "timer.h"
+#include "clint.h"
+#include "rv64.h"
+
+static const unsigned long TEST = 0xdeadbeef;
 
 MemoryManager::MemoryManager()
 {
     initialize();
 }
 
-void MemoryManager::initialize()
+unsigned long MemoryManager::init_physical_space()
 {
     this->totalMemory = 0;
     this->totalMemory = MEMORY_SIZE;
 
     // 预留的内存
-    int usedMemory = KERNEL_SIZE;
+    unsigned long usedMemory = (ceil(KERNEL_SIZE, PAGE_SIZE) + 1) * PAGE_SIZE;
+    l2_page_table = (unsigned long *)(DRAM_BASE + ceil(KERNEL_SIZE, PAGE_SIZE) * PAGE_SIZE);
+
     if (this->totalMemory < usedMemory)
     {
         driver.uart.putstr("no enough memory\n");
@@ -24,18 +32,18 @@ void MemoryManager::initialize()
     }
 
     // 剩余的空闲的内存
-    int freeMemory = this->totalMemory - usedMemory;
-    int freePages = freeMemory / PAGE_SIZE;
-    int bitmapBytes = ceil(freePages, 8);
+    unsigned long freeMemory = this->totalMemory - usedMemory;
+    unsigned long freePages = freeMemory / PAGE_SIZE;
+    unsigned long bitmapBytes = ceil(freePages, 8);
 
-    freeMemory -= bitmapBytes;
+    freeMemory = this->totalMemory - ceil(usedMemory + bitmapBytes, PAGE_SIZE) * PAGE_SIZE;
     freePages = freeMemory / PAGE_SIZE;
 
-    int kernelPages = freePages / 2;
-    int userPages = freePages - kernelPages;
+    unsigned long kernelPages = freePages / 2;
+    unsigned long userPages = freePages - kernelPages;
 
-    unsigned long kernelPhysicalStartAddress = DRAM_BASE + usedMemory + bitmapBytes;
-    unsigned long userPhysicalStartAddress =  kernelPhysicalStartAddress + kernelPages * PAGE_SIZE;
+    unsigned long kernelPhysicalStartAddress = DRAM_BASE + ceil(usedMemory + bitmapBytes, PAGE_SIZE) * PAGE_SIZE;
+    unsigned long userPhysicalStartAddress = kernelPhysicalStartAddress + kernelPages * PAGE_SIZE;
 
     unsigned long kernelPhysicalBitMapStart = DRAM_BASE + usedMemory;
     unsigned long userPhysicalBitMapStart = kernelPhysicalBitMapStart + ceil(kernelPages, 8);
@@ -76,6 +84,9 @@ void MemoryManager::initialize()
            userPages, userPages * PAGE_SIZE / 1024 / 1024,
            userPhysicalBitMapStart);
 
+    printf("Used Memory: %d ( %d MB )\n", usedMemory + bitmapBytes, (usedMemory + bitmapBytes) / 1024 / 1024);
+    return ceil(usedMemory + bitmapBytes, PAGE_SIZE) * PAGE_SIZE;
+
     // printf("kernel virtual pool\n"
     //        "    start address: 0x%x\n"
     //        "    total pages: %d  ( %d MB ) \n"
@@ -85,74 +96,170 @@ void MemoryManager::initialize()
     //        kernelVirtualBitMapStart);
 }
 
-// int MemoryManager::allocatePhysicalPages(enum AddressPoolType type, const int count)
-// {
-//     int start = -1;
+void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *address, unsigned long size)
+{
+    unsigned long current, new_page;
+    unsigned long l2, l1, l0;
+    unsigned long *pte;
 
-//     if (type == AddressPoolType::KERNEL)
-//     {
-//         start = kernelPhysical.allocate(count);
-//     }
-//     else if (type == AddressPoolType::USER)
-//     {
-//         start = userPhysical.allocate(count);
-//     }
+    // 为正在使用的地址建立one-one映射
+    for (unsigned long i = 0; i < size; ++i)
+    {
+        current = address[i].first & (~0xfffUL);
 
-//     return (start == -1) ? 0 : start;
-// }
+        while (current < address[i].second)
+        {
+            l2 = (current & PPN2_MASK) >> 30;
+            l1 = (current & PPN1_MASK) >> 21;
+            l0 = (current & PPN0_MASK) >> 12;
 
-// void MemoryManager::releasePhysicalPages(enum AddressPoolType type, const int paddr, const int count)
-// {
-//     if (type == AddressPoolType::KERNEL)
-//     {
-//         kernelPhysical.release(paddr, count);
-//     }
-//     else if (type == AddressPoolType::USER)
-//     {
+            pte = l2_page_table;
+            if ((pte[l2] & PTE_V) == 0)
+            {
+                new_page = allocatePhysicalPages(AddressPoolType::KERNEL, 1);
+                if (new_page == -1)
+                {
+                    printf("no enough space\n");
+                    return;
+                }
+                memset((void *)new_page, 0, PAGE_SIZE);
+                pte[l2] = (new_page >> 12) << 10;
+                pte[l2] = pte[l2] | PTE_V;
+            }
 
-//         userPhysical.release(paddr, count);
-//     }
-// }
+            // if (current == 0x80004000UL)
+            // {
+            //     printf("YES\n");
+            // }
 
-int MemoryManager::getTotalMemory()
+            pte = (unsigned long *)((pte[l2] >> 10) << 12);
+
+            if ((pte[l1] & PTE_V) == 0)
+            {
+                new_page = allocatePhysicalPages(AddressPoolType::KERNEL, 1);
+                if (new_page == -1)
+                {
+                    printf("no enough space\n");
+                    return;
+                }
+                memset((void *)new_page, 0, PAGE_SIZE);
+                pte[l1] = (new_page >> 12) << 10;
+                pte[l1] = pte[l1] | PTE_V;
+            }
+
+            // if (current == 0x80004000UL)
+            // {
+            //     printf("YES\n");
+            // }
+
+            pte = (unsigned long *)((pte[l1] >> 10) << 12);
+            pte[l0] = (current >> 12) << 10;
+            pte[l0] = pte[l0] | PTE_V;
+            pte[l0] = pte[l0] | PTE_R;
+            pte[l0] = pte[l0] | PTE_W;
+            pte[l0] = pte[l0] | PTE_X;
+
+            // if (current == 0x80004000UL)
+            // {
+            //     printf("YES\n%d %d %d\n", l2, l1, l0);
+            // }
+
+            current += PAGE_SIZE;
+
+            // ++l0;
+            // if (l0 >= 512)
+            // {
+            //     l0 -= 512;
+            //     ++l1;
+            // }
+
+            // if (l1 >= 512)
+            // {
+            //     l1 -= 512;
+            //     ++l2;
+            // }
+        }
+    }
+
+    // printf("L2 page table address: %x\n", l2_page_table);
+    // unsigned long addr = (unsigned long)&TEST;
+    // l2 = (addr & PPN2_MASK) >> 30;
+    // l1 = (addr & PPN1_MASK) >> 21;
+    // l0 = (addr & PPN0_MASK) >> 12;
+
+    // unsigned long mask = 0xfffffffffffUL << 10;
+    
+    // pte = l2_page_table;
+    // pte = (unsigned long *)((pte[l2] & mask) << 2);
+    // pte = (unsigned long *)((pte[l1] & mask) << 2);
+    // pte = (unsigned long *)((pte[l0] & mask) << 2);
+
+    // unsigned long trans_addr = (unsigned long)pte;
+
+    unsigned long satp = 0;
+    satp = satp | (8UL << 60);
+    satp = satp | ((unsigned long)l2_page_table >> 12);
+
+    write_satp(satp);
+}
+
+void MemoryManager::initialize()
+{
+    unsigned long used = init_physical_space();
+    memset(l2_page_table, 0, PAGE_SIZE);
+
+    pair<unsigned long, unsigned long> clint, uart, kernel;
+
+    clint.first = CLINT_BASE;
+    clint.second = clint.first + CLINT_SIZE;
+
+    uart.first = UART_BASE;
+    uart.second = uart.first + UART_SIZE;
+
+    kernel.first = DRAM_BASE;
+    kernel.second = kernel.first + used;
+
+    pair<unsigned long, unsigned long> address[] = {clint, uart, kernel};
+    openPageMechanism(address, 3);
+}
+
+unsigned long MemoryManager::allocatePhysicalPages(enum AddressPoolType type, unsigned long count)
+{
+    unsigned long start = -1;
+
+    if (type == AddressPoolType::KERNEL)
+    {
+        start = kernelPhysical.allocate(count);
+    }
+    else if (type == AddressPoolType::USER)
+    {
+        start = userPhysical.allocate(count);
+    }
+
+    return (start == -1) ? 0 : start;
+}
+
+void MemoryManager::releasePhysicalPages(enum AddressPoolType type, unsigned long paddr, unsigned long count)
+{
+    if (type == AddressPoolType::KERNEL)
+    {
+        kernelPhysical.release(paddr, count);
+    }
+    else if (type == AddressPoolType::USER)
+    {
+
+        userPhysical.release(paddr, count);
+    }
+}
+
+unsigned long MemoryManager::getTotalMemory()
 {
     return this->totalMemory;
 }
 
 // void MemoryManager::openPageMechanism()
 // {
-//     // 页目录表指针
-//     int *directory = (int *)PAGE_DIRECTORY;
-//     //线性地址0~4MB对应的页表
-//     int *page = (int *)(PAGE_DIRECTORY + PAGE_SIZE);
 
-//     // 初始化页目录表
-//     memset(directory, 0, PAGE_SIZE);
-//     // 初始化线性地址0~4MB对应的页表
-//     memset(page, 0, PAGE_SIZE);
-
-//     int address = 0;
-//     // 将线性地址0~1MB恒等映射到物理地址0~1MB
-//     for (int i = 0; i < 256; ++i)
-//     {
-//         // U/S = 1, R/W = 1, P = 1
-//         page[i] = address | 0x7;
-//         address += PAGE_SIZE;
-//     }
-
-//     // 初始化页目录项
-
-//     // 0~1MB
-//     directory[0] = ((int)page) | 0x07;
-//     // 3GB的内核空间
-//     directory[768] = directory[0];
-//     // 最后一个页目录项指向页目录表
-//     directory[1023] = ((int)directory) | 0x7;
-
-//     // 初始化cr3，cr0，开启分页机制
-//     asm_init_page_reg(directory);
-
-//     printf("open page mechanism\n");
 // }
 
 // int MemoryManager::allocatePages(enum AddressPoolType type, const int count)

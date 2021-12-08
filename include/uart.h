@@ -2,6 +2,7 @@
 #define UART_H
 
 #define UART_BASE 0x10000000
+#define UART_SIZE 0x100
 
 #define UART_RHR 0
 #define UART_THR 0

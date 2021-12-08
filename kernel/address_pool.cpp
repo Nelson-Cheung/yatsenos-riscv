@@ -6,21 +6,21 @@ AddressPool::AddressPool()
 }
 
 // 设置地址池BitMap
-void AddressPool::initialize(char *bitmap, const int length, unsigned long startAddress)
+void AddressPool::initialize(char *bitmap, unsigned long  length, unsigned long startAddress)
 {
     resources.initialize(bitmap, length);
     this->startAddress = startAddress;
 }
 
 // 从地址池中分配count个连续页
-unsigned long AddressPool::allocate(const int count)
+unsigned long AddressPool::allocate(unsigned long  count)
 {
-    int start = resources.allocate(count);
+    unsigned long start = resources.allocate(count);
     return (start == -1) ? -1 : (start * PAGE_SIZE + startAddress);
 }
 
 // 释放若干页的空间
-void AddressPool::release(unsigned long address, const int amount)
+void AddressPool::release(unsigned long address, unsigned long  amount)
 {
     resources.release((address - startAddress) / PAGE_SIZE, amount);
 }

@@ -16,6 +16,12 @@
 .global read_mepc
 .global write_mepc
 .global supervisor_timer_interrupt_done
+.global write_satp
+
+# extern "C" void write_satp(unsigned long);
+write_satp:
+    csrw satp, a0
+    ret
 
 # extern "C" unsigned long read_mepc();
 read_mepc:

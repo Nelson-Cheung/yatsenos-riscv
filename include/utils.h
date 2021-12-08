@@ -1,6 +1,13 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+template<typename T, typename S>
+struct pair
+{
+    T first;
+    S second;
+};
+
 template<typename T>
 void swap(T &x, T &y);
 
@@ -18,4 +25,6 @@ void memset(void *memory, char value, int length);
 int ceil(const int dividend, const int divisor);
 // printf
 int printf(const char *const fmt, ...);
+
+void memset(void *memory, char value, unsigned long length);
 #endif

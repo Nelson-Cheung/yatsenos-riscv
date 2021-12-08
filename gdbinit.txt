@@ -6,6 +6,7 @@ b _machine_interrupt_handler
 b _supervisor_interrupt_handler
 b supervisor_interrupt_handler
 b asm_interrupt_handler
-
+b MemoryManager::initialize
+b _finish
 layout src
 layout regs

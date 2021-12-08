@@ -2,6 +2,17 @@
 #define MEMORY_H
 
 #include "address_pool.h"
+#include "utils.h"
+
+#define PPN2_MASK (0x1ffUL << 30)
+#define PPN1_MASK (0x1ffUL << 21)
+#define PPN0_MASK (0x1ffUL << 12)
+
+#define PTE_V 1UL
+#define PTE_R (1UL << 1)
+#define PTE_W (1UL << 2)
+#define PTE_X (1UL << 3)
+#define PTE_U (1UL << 4)
 
 enum AddressPoolType
 {
@@ -13,13 +24,15 @@ class MemoryManager
 {
 public:
     // 可管理的内存容量
-    int totalMemory;
+    unsigned long totalMemory;
     // 内核物理地址池
     AddressPool kernelPhysical;
     // 用户物理地址池
     AddressPool userPhysical;
     // 内核虚拟地址池
     AddressPool kernelVirtual;
+    // L2页表
+    unsigned long *l2_page_table;
 
 public:
     MemoryManager();
@@ -29,40 +42,43 @@ public:
 
     // 从type类型的物理地址池中分配count个连续的页
     // 成功，返回起始地址；失败，返回0
-    int allocatePhysicalPages(enum AddressPoolType type, const int count);
+    unsigned long allocatePhysicalPages(enum AddressPoolType type, unsigned long count);
 
     // 释放从paddr开始的count个物理页
-    void releasePhysicalPages(enum AddressPoolType type, const int startAddress, const int count);
+    void releasePhysicalPages(enum AddressPoolType type, unsigned long startAddress, unsigned long count);
 
     // 获取内存总容量
-    int getTotalMemory();
+    unsigned long getTotalMemory();
 
     // 开启分页机制
-    void openPageMechanism();
+    void openPageMechanism(const pair<unsigned long, unsigned long> *address, unsigned long size);
 
     // 页内存分配
-    int allocatePages(enum AddressPoolType type, const int count);
+    unsigned long allocatePages(enum AddressPoolType type, unsigned long count);
 
     // 虚拟页分配
-    int allocateVirtualPages(enum AddressPoolType type, const int count);
+    unsigned long allocateVirtualPages(enum AddressPoolType type, unsigned long count);
 
     // 建立虚拟页到物理页的联系
-    bool connectPhysicalVirtualPage(const int virtualAddress, const int physicalPageAddress);
+    bool connectPhysicalVirtualPage(unsigned long virtualAddress, unsigned long physicalPageAddress);
 
     // 计算virtualAddress的页目录项的虚拟地址
-    int toPDE(const int virtualAddress);
+    unsigned long toPDE(unsigned long virtualAddress);
 
     // 计算virtualAddress的页表项的虚拟地址
-    int toPTE(const int virtualAddress);
+    unsigned long toPTE(unsigned long virtualAddress);
 
     // 页内存释放
-    void releasePages(enum AddressPoolType type, const int virtualAddress, const int count);    
+    void releasePages(enum AddressPoolType type, unsigned long virtualAddress, unsigned long count);
 
     // 找到虚拟地址对应的物理地址
-    int vaddr2paddr(int vaddr);
+    unsigned long vaddr2paddr(unsigned long vaddr);
 
     // 释放虚拟页
-    void releaseVirtualPages(enum AddressPoolType type, const int vaddr, const int count);
+    void releaseVirtualPages(enum AddressPoolType type, unsigned long vaddr, unsigned long count);
+
+private:
+    unsigned long init_physical_space();
 };
 
 #endif

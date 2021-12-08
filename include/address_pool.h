@@ -12,11 +12,11 @@ public:
 public:
     AddressPool();
     // 初始化地址池
-    void initialize(char *bitmap, const int length, unsigned long startAddress);
+    void initialize(char *bitmap, unsigned long  length, unsigned long startAddress);
     // 从地址池中分配count个连续页，成功则返回第一个页的地址，失败则返回-1
-    unsigned long allocate(const int count);
+    unsigned long allocate(unsigned long  count);
     // 释放若干页的空间
-    void release(unsigned long address, const int amount);
+    void release(unsigned long address, unsigned long  amount);
 };
 
 #endif

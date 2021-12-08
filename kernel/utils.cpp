@@ -151,3 +151,11 @@ int printf(const char *const fmt, ...)
 
     return 0;
 }
+
+void memset(void *memory, char value, unsigned long length)
+{
+    for (unsigned long i = 0; i < length; ++i)
+    {
+        ((char *)memory)[i] = value;
+    }
+}

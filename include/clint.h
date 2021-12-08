@@ -2,6 +2,7 @@
 #define CLINT_H
 
 #define CLINT_BASE 0x2000000
+#define CLINT_SIZE 0x10000
 
 class CLINT
 {

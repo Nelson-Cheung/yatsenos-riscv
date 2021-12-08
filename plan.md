@@ -32,3 +32,9 @@
 ## 问题
 1. 从M mode进入S mode前需要关闭PMP，否则会发生illegal instruction
 2. timer无法转发到S mode，转发的方法是在M mode中设置mtimecmp为最大值，然后设置mip的stip，mret后即可转发到S mode。S mode处理完成后，通过ecall进入M mode，在M mode中clear stip，从而完成整个时钟中断的处理。
+3. 对于Sv39，页地址应该是4KB对齐的。
+
+## Sv39
+1. Instruction fetch addresses and load and store effective addresses, which are 64 bits, must have bits 63–39 all equal to bit 38, or else a page-fault exception will occur.
+2. A page-fault exception is raised if the physical address is insufficiently aligned.
+3. 

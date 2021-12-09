@@ -3,6 +3,7 @@
 #include "interrupt.h"
 #include "utils.h"
 #include "mem.h"
+#include "constant.h"
 
 Driver driver;
 MemoryManager memory_manager;
@@ -27,6 +28,15 @@ extern "C" void rv64_kernel_init()
 extern "C" void kernel_entry()
 {
     rv64_kernel_init();
+
+    unsigned int n0 = ceil(MEMORY_SIZE, PAGE_SIZE);
+    unsigned int n1 = ceil(n0, 512);
+    unsigned int n2 = ceil(n1, 512);
+    unsigned int n3 = ceil(n2, 512);
+
+    printf("%d %d %d %d\n", n0, n1, n2, n3);
+    
+    return;
     printf("initialization finish\n");
 
     printf("######  ###  #####   #####        #     #\n");
@@ -36,7 +46,7 @@ extern "C" void kernel_entry()
     printf("#   #    #        # #              #   #\n");
     printf("#    #   #  #     # #     #         # #\n");
     printf("#     # ###  #####   #####           #\n");
-    
+
     printf("print percentage: %%\n"
            "print char \"N\": %c\n"
            "print string \"Hello World!\": %s\n"

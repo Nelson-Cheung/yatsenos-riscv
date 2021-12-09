@@ -37,4 +37,13 @@
 ## Sv39
 1. Instruction fetch addresses and load and store effective addresses, which are 64 bits, must have bits 63–39 all equal to bit 38, or else a page-fault exception will occur.
 2. A page-fault exception is raised if the physical address is insufficiently aligned.
-3. 
+3. 假设内存有$N$个页表，用于管理的3级页表的数量总和最大值为$M$，则
+   $$
+    M\le\frac{N+M}{512}+1+\frac{\frac{N+M}{512}+1}{512}+1+\frac{\frac{\frac{N+M}{512}+1}{512}+1}{512}+1
+   $$
+   解得
+   $$
+   M\le\frac{(2^{18}+2^{9}+1)N+3\cdot 2^{27}+2\cdot 2^{18}+2^{9}}{2^{27}-2^{18}-2^{9}-1}+1
+   $$
+4. 
+

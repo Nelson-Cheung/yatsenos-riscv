@@ -16,7 +16,7 @@ void AddressPool::initialize(char *bitmap, unsigned long  length, unsigned long 
 unsigned long AddressPool::allocate(unsigned long  count)
 {
     unsigned long start = resources.allocate(count);
-    return (start == -1) ? -1 : (start * PAGE_SIZE + startAddress);
+    return (start == -1UL) ? -1UL : (start * PAGE_SIZE + startAddress);
 }
 
 // 释放若干页的空间

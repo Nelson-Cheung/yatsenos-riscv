@@ -14,6 +14,8 @@
 #define PTE_X (1UL << 3)
 #define PTE_U (1UL << 4)
 
+#define SATP_MODE (0xfUL << 60)
+
 enum AddressPoolType
 {
     USER,
@@ -25,14 +27,12 @@ class MemoryManager
 public:
     // 可管理的内存容量
     unsigned long totalMemory;
-    // 内核物理地址池
-    AddressPool kernelPhysical;
-    // 用户物理地址池
-    AddressPool userPhysical;
+    // 物理地址池
+    AddressPool physical_address_pool;
     // 内核虚拟地址池
     AddressPool kernelVirtual;
     // L2页表
-    unsigned long *l2_page_table;
+    unsigned long l2_page_table;
 
 public:
     MemoryManager();
@@ -42,10 +42,10 @@ public:
 
     // 从type类型的物理地址池中分配count个连续的页
     // 成功，返回起始地址；失败，返回0
-    unsigned long allocatePhysicalPages(enum AddressPoolType type, unsigned long count);
+    unsigned long allocatePhysicalPages(unsigned long count);
 
     // 释放从paddr开始的count个物理页
-    void releasePhysicalPages(enum AddressPoolType type, unsigned long startAddress, unsigned long count);
+    void releasePhysicalPages(unsigned long startAddress, unsigned long count);
 
     // 获取内存总容量
     unsigned long getTotalMemory();

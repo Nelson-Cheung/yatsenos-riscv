@@ -29,13 +29,6 @@ extern "C" void kernel_entry()
 {
     rv64_kernel_init();
 
-    unsigned int n0 = ceil(MEMORY_SIZE, PAGE_SIZE);
-    unsigned int n1 = ceil(n0, 512);
-    unsigned int n2 = ceil(n1, 512);
-    unsigned int n3 = ceil(n2, 512);
-
-    printf("%d %d %d %d\n", n0, n1, n2, n3);
-    
     return;
     printf("initialization finish\n");
 
@@ -55,4 +48,6 @@ extern "C" void kernel_entry()
            "print long decimal: \"-122147483647\": %ld\n"
            "pritn long hexadecimal \"0x123456789a\": %lx\n",
            'N', "Hello World!", -1234, 0x7abcdef0, -122147483647, 0x123456789a);
+
+    
 }

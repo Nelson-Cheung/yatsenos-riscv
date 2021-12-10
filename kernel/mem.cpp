@@ -100,85 +100,8 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 
         while (current < address[i].second)
         {
-            l2 = (current & PPN2_MASK) >> 30;
-            l1 = (current & PPN1_MASK) >> 21;
-            l0 = (current & PPN0_MASK) >> 12;
-
-            pte = ((unsigned long *)l2_page_table);
-            if ((pte[l2] & PTE_V) == 0)
-            {
-                new_page = allocatePhysicalPages(1);
-                if (new_page == -1UL)
-                {
-                    printf("no enough space\n");
-                    return;
-                }
-                memset((void *)new_page, 0, PAGE_SIZE);
-                pte[l2] = (new_page >> 12) << 10;
-                pte[l2] = pte[l2] | PTE_V;
-
-                if (current >= DRAM_BASE)
-                {
-                    ++counter;
-                }
-            }
-
-            // if (current == 0x80004000UL)
-            // {
-            //     printf("YES\n");
-            // }
-
-            pte = (unsigned long *)((pte[l2] >> 10) << 12);
-
-            if ((pte[l1] & PTE_V) == 0)
-            {
-                new_page = allocatePhysicalPages(1);
-                if (new_page == -1UL)
-                {
-                    printf("no enough space\n");
-                    return;
-                }
-                memset((void *)new_page, 0, PAGE_SIZE);
-                pte[l1] = (new_page >> 12) << 10;
-                pte[l1] = pte[l1] | PTE_V;
-
-                if (current >= DRAM_BASE)
-                {
-                    ++counter;
-                }
-            }
-
-            // if (current == 0x80004000UL)
-            // {
-            //     printf("YES\n");
-            // }
-
-            pte = (unsigned long *)((pte[l1] >> 10) << 12);
-            pte[l0] = (current >> 12) << 10;
-            pte[l0] = pte[l0] | PTE_V;
-            pte[l0] = pte[l0] | PTE_R;
-            pte[l0] = pte[l0] | PTE_W;
-            pte[l0] = pte[l0] | PTE_X;
-
-            // if (current == 0x80004000UL)
-            // {
-            //     printf("YES\n%d %d %d\n", l2, l1, l0);
-            // }
-
+            connect_virtual_physical_address(current, current, PTE_V | PTE_R | PTE_W | PTE_X);
             current += PAGE_SIZE;
-
-            // ++l0;
-            // if (l0 >= 512)
-            // {
-            //     l0 -= 512;
-            //     ++l1;
-            // }
-
-            // if (l1 >= 512)
-            // {
-            //     l1 -= 512;
-            //     ++l2;
-            // }
         }
     }
 
@@ -214,12 +137,60 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 
     write_satp(satp);
 
+    // unsigned long addr = (unsigned long)&TEST;
+    // pte = l2_pte_pointer(addr);
+    // pte = l1_pte_pointer(addr);
+    // pte = l0_pte_pointer(addr);
+
     // unsigned long paddr = addr & 0xfffUL;
+}
+
+void MemoryManager::connect_virtual_physical_address(unsigned long paddr, unsigned long vaddr, unsigned long flags)
+{
+    unsigned long l2, l1, l0, new_page;
+    unsigned long *pte = nullptr;
+
+    l2 = (vaddr & PPN2_MASK) >> 30;
+    l1 = (vaddr & PPN1_MASK) >> 21;
+    l0 = (vaddr & PPN0_MASK) >> 12;
+
+    pte = ((unsigned long *)l2_page_table);
+    if ((pte[l2] & PTE_V) == 0)
+    {
+        new_page = allocatePhysicalPages(1);
+        if (new_page == -1UL)
+        {
+            printf("no enough space\n");
+            return;
+        }
+        memset((void *)new_page, 0, PAGE_SIZE);
+        pte[l2] = (new_page >> 12) << 10;
+        pte[l2] = pte[l2] | PTE_V;
+    }
+
+    pte = (unsigned long *)((pte[l2] >> 10) << 12);
+
+    if ((pte[l1] & PTE_V) == 0)
+    {
+        new_page = allocatePhysicalPages(1);
+        if (new_page == -1UL)
+        {
+            printf("no enough space\n");
+            return;
+        }
+        memset((void *)new_page, 0, PAGE_SIZE);
+        pte[l1] = (new_page >> 12) << 10;
+        pte[l1] = pte[l1] | PTE_V;
+    }
+
+    pte = (unsigned long *)((pte[l1] >> 10) << 12);
+    pte[l0] = (vaddr >> 12) << 10;
+    pte[l0] = pte[l0] | flags;
 }
 
 void MemoryManager::initialize()
 {
-    unsigned long used = init_physical_space();
+    init_physical_space();
     l2_page_table = allocatePhysicalPages(1);
     memset((void *)l2_page_table, 0, PAGE_SIZE);
 
@@ -256,11 +227,6 @@ unsigned long MemoryManager::getTotalMemory()
 {
     return this->totalMemory;
 }
-
-// void MemoryManager::openPageMechanism()
-// {
-
-// }
 
 // int MemoryManager::allocatePages(enum AddressPoolType type, const int count)
 // {
@@ -346,15 +312,42 @@ unsigned long MemoryManager::getTotalMemory()
 //     return true;
 // }
 
-// int MemoryManager::toPDE(const int virtualAddress)
-// {
-//     return (0xfffff000 + (((virtualAddress & 0xffc00000) >> 22) * 4));
-// }
+unsigned long MemoryManager::l2_pte_index(unsigned long virtual_address)
+{
+    return (virtual_address & PPN2_MASK) >> 30;
+}
 
-// int MemoryManager::toPTE(const int virtualAddress)
-// {
-//     return (0xffc00000 + ((virtualAddress & 0xffc00000) >> 10) + (((virtualAddress & 0x003ff000) >> 12) * 4));
-// }
+unsigned long MemoryManager::l1_pte_index(unsigned long virtual_address)
+{
+    return (virtual_address & PPN1_MASK) >> 21;
+}
+
+unsigned long MemoryManager::l0_pte_index(unsigned long virtual_address)
+{
+    return (virtual_address & PPN0_MASK) >> 12;
+}
+
+unsigned long *MemoryManager::l2_pte_pointer(unsigned long virtual_address)
+{
+    unsigned long l2 = (virtual_address & PPN2_MASK) >> 30;
+    return (unsigned long *)(l2_page_table + sizeof(unsigned long) * l2);
+}
+
+unsigned long *MemoryManager::l1_pte_pointer(unsigned long virtual_address)
+{
+    unsigned long *pte = l2_pte_pointer(virtual_address);
+    unsigned long l1_page_table = ((*pte) & PTE_PPN_MASK) << 2;
+    unsigned long l1 = (virtual_address & PPN1_MASK) >> 21;
+    return (unsigned long *)(l1_page_table + sizeof(unsigned long) * l1);
+}
+
+unsigned long *MemoryManager::l0_pte_pointer(unsigned long virtual_address)
+{
+    unsigned long *pte = l1_pte_pointer(virtual_address);
+    unsigned long l0_page_table = ((*pte) & PTE_PPN_MASK) << 2;
+    unsigned long l0 = (virtual_address & PPN0_MASK) >> 12;
+    return (unsigned long *)(l0_page_table + sizeof(unsigned long) * l0);
+}
 
 // void MemoryManager::releasePages(enum AddressPoolType type, const int virtualAddress, const int count)
 // {

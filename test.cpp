@@ -1,59 +1,24 @@
-#include "queue.h"
 #include <iostream>
 using namespace std;
 
+
 int main()
 {
-    unsigned long a[6];
-    Queue<unsigned long> q(a, sizeof(a) / sizeof(unsigned long));
+label1:
+    int a = 1;
+    int b;
+    static int c;
+    const int d = 1;
+    while (true)
+        ;
+label2:
+    return 0;
 
-    // cout << q.empty() << endl;s
-
-    cout << q.push(5) << endl;
-    cout << q.push(53) << endl;
-    cout << q.push(125) << endl;
-    cout << q.push(2455) << endl;
-    cout << q.push(4365) << endl;
-    cout << q.push(5104124) << endl;
-    cout << q.push(32452) << endl;
-
-    unsigned long item;
-
-    cout << "--------------" << endl;
-
-    cout << q.pop(item) << endl;
-    cout << item << endl;
-    cout << q.pop() << endl;
-    cout << q.pop() << endl;
-    cout << q.pop(item) << endl;
-    cout << item << endl;
-    cout << q.pop(item) << endl;
-    cout << item << endl;
-    cout << q.pop() << endl;
-    cout << q.pop() << endl;
-    cout << q.empty() << endl;
-
-    cout << "--------------" << endl;
-
-    cout << q.push(5) << endl;
-    cout << q.push(53) << endl;
-    cout << q.push(125) << endl;
-    cout << q.push(2455) << endl;
-    cout << q.push(4365) << endl;
-    cout << q.push(5104124) << endl;
-    cout << q.push(32452) << endl;
-
-    cout << "--------------" << endl;
-
-    cout << q.pop(item) << endl;
-    cout << item << endl;
-    cout << q.pop() << endl;
-    cout << q.pop() << endl;
-    cout << q.pop(item) << endl;
-    cout << item << endl;
-    cout << q.pop(item) << endl;
-    cout << item << endl;
-    cout << q.pop() << endl;
-    cout << q.pop() << endl;
-    cout << q.empty() << endl;
+label3:
+    return 0;
 }
+
+int a = 1;
+int b;
+static int c;
+const int d = 2;

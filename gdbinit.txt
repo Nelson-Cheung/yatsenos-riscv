@@ -6,7 +6,6 @@ b _machine_interrupt_handler
 b _supervisor_interrupt_handler
 b supervisor_interrupt_handler
 b asm_interrupt_handler
-b kernel/mem.cpp:195
 b _finish
 b kernel/init.cpp:46
 layout src

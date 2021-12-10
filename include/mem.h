@@ -8,7 +8,9 @@
 #define PPN1_MASK (0x1ffUL << 21)
 #define PPN0_MASK (0x1ffUL << 12)
 
-#define PTE_V 1UL
+#define PTE_PPN_MASK (0xfffffffffffUL << 10)
+
+#define PTE_V (1UL << 0)
 #define PTE_R (1UL << 1)
 #define PTE_W (1UL << 2)
 #define PTE_X (1UL << 3)
@@ -53,29 +55,18 @@ public:
     // 开启分页机制
     void openPageMechanism(const pair<unsigned long, unsigned long> *address, unsigned long size);
 
-    // 页内存分配
-    unsigned long allocatePages(enum AddressPoolType type, unsigned long count);
+    // 建立虚拟地址到物理地址的联系
+    void connect_virtual_physical_address(unsigned long paddr, unsigned long vaddr, unsigned long flags);
 
-    // 虚拟页分配
-    unsigned long allocateVirtualPages(enum AddressPoolType type, unsigned long count);
+    // 计算Sv39pte
+    unsigned long l2_pte_index(unsigned long virtual_address);
+    unsigned long l1_pte_index(unsigned long virtual_address);
+    unsigned long l0_pte_index(unsigned long virtual_address);
 
-    // 建立虚拟页到物理页的联系
-    bool connectPhysicalVirtualPage(unsigned long virtualAddress, unsigned long physicalPageAddress);
+    unsigned long *l2_pte_pointer(unsigned long virtual_address);
+    unsigned long *l1_pte_pointer(unsigned long virtual_address);
+    unsigned long *l0_pte_pointer(unsigned long virtual_address);
 
-    // 计算virtualAddress的页目录项的虚拟地址
-    unsigned long toPDE(unsigned long virtualAddress);
-
-    // 计算virtualAddress的页表项的虚拟地址
-    unsigned long toPTE(unsigned long virtualAddress);
-
-    // 页内存释放
-    void releasePages(enum AddressPoolType type, unsigned long virtualAddress, unsigned long count);
-
-    // 找到虚拟地址对应的物理地址
-    unsigned long vaddr2paddr(unsigned long vaddr);
-
-    // 释放虚拟页
-    void releaseVirtualPages(enum AddressPoolType type, unsigned long vaddr, unsigned long count);
 
 private:
     unsigned long init_physical_space();

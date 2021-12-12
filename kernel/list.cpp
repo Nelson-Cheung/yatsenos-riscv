@@ -7,7 +7,8 @@ List::List()
 
 void List::initialize()
 {
-    head.next = head.previous = 0;
+    head.next = 0;
+    head.previous = 0;
 }
 
 int List::size()

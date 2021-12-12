@@ -285,3 +285,9 @@ user，包含代码段、数据段、堆、栈、命令行参数和环境变量
 [0xffffffff80000000, 0xffffffffffffffff] 
 kernel，用于进程间共享
 ```
+4. 创建进程：PCB、L2页表、用户栈、程序加载
+5. 坑：使用GDB调试，进入用户进程后，需要`delete`所有的断点，然后再执行，否则会报如下错误
+```
+GDB Cannot insert breakpoint, Cannot access memory at address XXX
+```
+6. debug技巧：sstatus.sum = 1, 所有内存页的映射U=1，这样既可以在User mode中访问Supervisor mode的页。

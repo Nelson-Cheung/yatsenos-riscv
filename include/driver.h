@@ -4,6 +4,8 @@
 #include "uart.h"
 #include "clint.h"
 #include "timer.h"
+#include "process.h"
+#include "mem.h"
 
 class Driver
 {

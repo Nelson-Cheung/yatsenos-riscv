@@ -7,6 +7,8 @@ b _supervisor_interrupt_handler
 b supervisor_interrupt_handler
 b asm_interrupt_handler
 b _finish
-b kernel/init.cpp:46
+b start_process
+b kernel/init.cpp:52
+b write_satp
 layout src
 layout regs

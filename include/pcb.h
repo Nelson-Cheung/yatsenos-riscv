@@ -16,7 +16,8 @@ enum ProcessStatus
 
 struct PCB
 {
-    unsigned long *stack;               // 栈指针，用于调度时保存esp
+    unsigned long *stack;        // 栈指针，用于调度时保存esp
+    // unsigned long *user_stack;          // 用户栈起始地址
     char name[MAX_PROGRAM_NAME + 1];    // 进程名
     enum ProcessStatus status;          // 进程的状态
     unsigned long priority;             // 进程优先级

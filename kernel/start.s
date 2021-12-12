@@ -41,7 +41,21 @@ _start:
     mret 
 
 _enter_supervisor_mode:
+    # DEBUG所用
+    li t0, 1 << 18
+    csrs sstatus, t0
+    ########
     call kernel_entry
+    
+    # 设置用户态
+#     la t0, _enter_user_mode
+#     csrw sepc, t0
+#     li t0, 1 << 8
+#     csrc sstatus, t0
+#     sret
+
+# _enter_user_mode:
+#     ecall
 
 _finish:
     j _finish
@@ -57,4 +71,5 @@ _supervisor_interrupt_handler:
     j _supervisor_interrupt_handler
 
 .data
+.align 12 # 必须加上
 stack0 : .dword 4096

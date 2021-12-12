@@ -9,7 +9,7 @@
 #include "rv64.h"
 #include "queue.h"
 
-static const unsigned long TEST = 0xdeadbeef;
+unsigned long TEST = 0xdeadbeef;
 
 #define CAL_N (MEMORY_SIZE >> 12)
 #define CAL_A (1UL << 27)
@@ -87,11 +87,7 @@ unsigned long MemoryManager::init_physical_space()
 
 void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *address, unsigned long size)
 {
-    unsigned long current, new_page;
-    unsigned long l2, l1, l0;
-    unsigned long *pte;
-
-    int counter = 0;
+    unsigned long current;
 
     // 为正在使用的地址建立one-one映射
     for (unsigned long i = 0; i < size; ++i)
@@ -100,7 +96,7 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 
         while (current < address[i].second)
         {
-            connect_virtual_physical_address(current, current, PTE_V | PTE_R | PTE_W | PTE_X);
+            connect_virtual_physical_address(l2_page_table,current, current, PTE_V | PTE_R | PTE_W | PTE_X | PTE_U);
             current += PAGE_SIZE;
         }
     }
@@ -137,15 +133,13 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 
     write_satp(satp);
 
-    // unsigned long addr = (unsigned long)&TEST;
-    // pte = l2_pte_pointer(addr);
-    // pte = l1_pte_pointer(addr);
-    // pte = l0_pte_pointer(addr);
+    unsigned long addr = (unsigned long)&TEST;
+    printf("%lx %lx %lx\n", *l2_pte_pointer(addr), *l1_pte_pointer(addr), *l0_pte_pointer(addr));
 
     // unsigned long paddr = addr & 0xfffUL;
 }
 
-void MemoryManager::connect_virtual_physical_address(unsigned long paddr, unsigned long vaddr, unsigned long flags)
+void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table, unsigned long paddr, unsigned long vaddr, unsigned long flags)
 {
     unsigned long l2, l1, l0, new_page;
     unsigned long *pte = nullptr;
@@ -153,6 +147,11 @@ void MemoryManager::connect_virtual_physical_address(unsigned long paddr, unsign
     l2 = (vaddr & PPN2_MASK) >> 30;
     l1 = (vaddr & PPN1_MASK) >> 21;
     l0 = (vaddr & PPN0_MASK) >> 12;
+
+    if (vaddr == 0x3fffff000UL)
+    {
+        printf("%ld %ld %ld\n", l2, l1, l0);
+    }
 
     pte = ((unsigned long *)l2_page_table);
     if ((pte[l2] & PTE_V) == 0)
@@ -184,7 +183,7 @@ void MemoryManager::connect_virtual_physical_address(unsigned long paddr, unsign
     }
 
     pte = (unsigned long *)((pte[l1] >> 10) << 12);
-    pte[l0] = (vaddr >> 12) << 10;
+    pte[l0] = (paddr >> 12) << 10;
     pte[l0] = pte[l0] | flags;
 }
 
@@ -228,90 +227,6 @@ unsigned long MemoryManager::getTotalMemory()
     return this->totalMemory;
 }
 
-// int MemoryManager::allocatePages(enum AddressPoolType type, const int count)
-// {
-//     // 第一步：从虚拟地址池中分配若干虚拟页
-//     int virtualAddress = allocateVirtualPages(type, count);
-//     if (!virtualAddress)
-//     {
-//         return 0;
-//     }
-
-//     bool flag;
-//     int physicalPageAddress;
-//     int vaddress = virtualAddress;
-
-//     // 依次为每一个虚拟页指定物理页
-//     for (int i = 0; i < count; ++i, vaddress += PAGE_SIZE)
-//     {
-//         flag = false;
-//         // 第二步：从物理地址池中分配一个物理页
-//         physicalPageAddress = allocatePhysicalPages(type, 1);
-//         if (physicalPageAddress)
-//         {
-//             //printf("allocate physical page 0x%x\n", physicalPageAddress);
-
-//             // 第三步：为虚拟页建立页目录项和页表项，使虚拟页内的地址经过分页机制变换到物理页内。
-//             flag = connectPhysicalVirtualPage(vaddress, physicalPageAddress);
-//         }
-//         else
-//         {
-//             flag = false;
-//         }
-
-//         // 分配失败，释放前面已经分配的虚拟页和物理页表
-//         if (!flag)
-//         {
-//             // 前i个页表已经指定了物理页
-//             releasePages(type, virtualAddress, i);
-//             // 剩余的页表未指定物理页
-//             releaseVirtualPages(type, virtualAddress + i * PAGE_SIZE, count - i);
-//             return 0;
-//         }
-//     }
-
-//     return virtualAddress;
-// }
-
-// int MemoryManager::allocateVirtualPages(enum AddressPoolType type, const int count)
-// {
-//     int start = -1;
-
-//     if (type == AddressPoolType::KERNEL)
-//     {
-//         start = kernelVirtual.allocate(count);
-//     }
-
-//     return (start == -1) ? 0 : start;
-// }
-
-// bool MemoryManager::connectPhysicalVirtualPage(const int virtualAddress, const int physicalPageAddress)
-// {
-//     // 计算虚拟地址对应的页目录项和页表项
-//     int *pde = (int *)toPDE(virtualAddress);
-//     int *pte = (int *)toPTE(virtualAddress);
-
-//     // 页目录项无对应的页表，先分配一个页表
-//     if(!(*pde & 0x00000001))
-//     {
-//         // 从内核物理地址空间中分配一个页表
-//         int page = allocatePhysicalPages(AddressPoolType::KERNEL, 1);
-//         if (!page)
-//             return false;
-
-//         // 使页目录项指向页表
-//         *pde = page | 0x7;
-//         // 初始化页表
-//         char *pagePtr = (char *)(((int)pte) & 0xfffff000);
-//         memset(pagePtr, 0, PAGE_SIZE);
-//     }
-
-//     // 使页表项指向物理页
-//     *pte = physicalPageAddress | 0x7;
-
-//     return true;
-// }
-
 unsigned long MemoryManager::l2_pte_index(unsigned long virtual_address)
 {
     return (virtual_address & PPN2_MASK) >> 30;
@@ -348,37 +263,3 @@ unsigned long *MemoryManager::l0_pte_pointer(unsigned long virtual_address)
     unsigned long l0 = (virtual_address & PPN0_MASK) >> 12;
     return (unsigned long *)(l0_page_table + sizeof(unsigned long) * l0);
 }
-
-// void MemoryManager::releasePages(enum AddressPoolType type, const int virtualAddress, const int count)
-// {
-//     int vaddr = virtualAddress;
-//     int *pte;
-//     for (int i = 0; i < count; ++i, vaddr += PAGE_SIZE)
-//     {
-//         // 第一步，对每一个虚拟页，释放为其分配的物理页
-//         releasePhysicalPages(type, vaddr2paddr(vaddr), 1);
-
-//         // 设置页表项为不存在，防止释放后被再次使用
-//         pte = (int *)toPTE(vaddr);
-//         *pte = 0;
-//     }
-
-//     // 第二步，释放虚拟页
-//     releaseVirtualPages(type, virtualAddress, count);
-// }
-
-// int MemoryManager::vaddr2paddr(int vaddr)
-// {
-//     int *pte = (int *)toPTE(vaddr);
-//     int page = (*pte) & 0xfffff000;
-//     int offset = vaddr & 0xfff;
-//     return (page + offset);
-// }
-
-// void MemoryManager::releaseVirtualPages(enum AddressPoolType type, const int vaddr, const int count)
-// {
-//     if (type == AddressPoolType::KERNEL)
-//     {
-//         kernelVirtual.release(vaddr, count);
-//     }
-// }

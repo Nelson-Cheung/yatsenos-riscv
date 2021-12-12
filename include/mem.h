@@ -56,7 +56,7 @@ public:
     void openPageMechanism(const pair<unsigned long, unsigned long> *address, unsigned long size);
 
     // 建立虚拟地址到物理地址的联系
-    void connect_virtual_physical_address(unsigned long paddr, unsigned long vaddr, unsigned long flags);
+    void connect_virtual_physical_address(unsigned long l2_page_table, unsigned long paddr, unsigned long vaddr, unsigned long flags);
 
     // 计算Sv39pte
     unsigned long l2_pte_index(unsigned long virtual_address);

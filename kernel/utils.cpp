@@ -156,14 +156,16 @@ int printf(const char *const fmt, ...)
                 break;
 
             case 's':
+            {
                 buffer[idx] = '\0';
                 idx = 0;
                 // counter += stdio.print(buffer);
                 // counter += stdio.print(va_arg(ap, const char *));
                 driver.uart.putstr(buffer);
-                driver.uart.putstr(va_arg(ap, const char *));
+                driver.uart.putstr(va_arg(ap, char *));
+                int j = i;
                 break;
-
+            }
             case 'd':
             case 'x':
             {
@@ -228,4 +230,16 @@ void memset(void *memory, char value, unsigned long length)
     {
         ((char *)memory)[i] = value;
     }
+}
+
+void memcpy(void *src, void *dst, unsigned long length)
+{
+    for (unsigned long i = 0; i < length; ++i)
+    {
+        ((char *)dst)[i] = ((char *)src)[i];
+    }
+}
+
+unsigned long strlen(const char *s) {
+
 }

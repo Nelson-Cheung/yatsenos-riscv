@@ -1,9 +1,9 @@
-VPATH = driver include kernel
+VPATH = driver include kernel user
 
 PREFIX = riscv64-unknown-linux-gnu
 CXX = $(PREFIX)-g++
 INCLUDE = include
-CXX_FLAGS = -c -g -Wall -nostdlib -O0 -I$(INCLUDE) -fno-builtin -ffreestanding -fno-pic -mcmodel=medany
+CXX_FLAGS = -c -g -Wall -nostdlib -O0 -fno-builtin -ffreestanding -fno-pic -I$(INCLUDE) -mcmodel=medany
 
 
 AS = $(PREFIX)-as
@@ -12,12 +12,26 @@ LD = $(PREFIX)-ld
 TARGET = kernel.elf
 OBJ = start.o
 OBJ += driver.o uart.o init.o asm_utils.o interrupt.o clint.o timer.o utils.o \
-address_pool.o bitmap.o mem.o
+address_pool.o bitmap.o mem.o \
+list.o process.o proc_zero.o \
+syscall_manager.o
 
 
 $(TARGET) : $(OBJ)
 	$(LD) $^ -Ttext 0x80000000 -e _start -o $@
-	# $(LD) $^ -T kernel.ld -e _start -o $@
+	# $(LD) $^ -T kernel.ld -o $@
+
+syscall_manager.o: syscall_manager.cpp
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+list.o: list.cpp list.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+process.o: process.cpp process.h pcb.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+proc_zero.o: proc_zero.cpp
+	$(CXX) $(CXX_FLAGS) $< -o $@
 
 address_pool.o: address_pool.cpp address_pool.h
 	$(CXX) $(CXX_FLAGS) $< -o $@

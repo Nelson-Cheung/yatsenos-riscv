@@ -29,4 +29,6 @@ int ceil(const int dividend, const int divisor);
 int printf(const char *const fmt, ...);
 
 void memset(void *memory, char value, unsigned long length);
+void memcpy(void *src, void *dst, unsigned long length);
+unsigned long strlen(const char *s);
 #endif

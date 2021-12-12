@@ -32,6 +32,15 @@ extern "C" void supervisor_timer_interrupt_done();
 
 extern "C" void write_satp(unsigned long);
 
+extern "C" unsigned long read_a0();
+extern "C" unsigned long read_a1();
+extern "C" unsigned long read_a2();
+extern "C" unsigned long read_a3();
+extern "C" unsigned long read_a4();
+extern "C" unsigned long read_a5();
+extern "C" unsigned long read_a6();
+extern "C" unsigned long read_a7();
+
 struct Registers
 {
     unsigned long zero;
@@ -67,5 +76,9 @@ struct Registers
     unsigned long t5;
     unsigned long t6;
 };
+
+#include "pcb.h"
+extern "C" PCB *switch_to(void *current, void *next);
+extern "C" void start_process(PCB *pcb);
 
 #endif

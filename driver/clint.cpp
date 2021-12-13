@@ -16,11 +16,11 @@ void CLINT::enable_interrupt()
     sstauts = sstauts | mask;
     write_sstatus(sstauts);
 
-    unsigned long sie = read_sie();
-    mask = (1UL << 9) | (1UL << 5) | (1UL << 1);
-    sie = sie & (~mask);
-    sie = sie | mask;
-    write_sie(sie);
+    // unsigned long sie = read_sie();
+    // mask = (1UL << 9) | (1UL << 5) | (1UL << 1);
+    // sie = sie & (~mask);
+    // sie = sie | mask;
+    // write_sie(sie);
 }
 
 // void enable_software_interrupt();
@@ -42,10 +42,10 @@ void CLINT::disable_interrupt()
     sstauts = sstauts & (~mask);
     write_sstatus(sstauts);
 
-    unsigned long sie = read_sie();
-    mask = (1UL << 9) | (1UL << 5) | (1UL << 1);
-    sie = sie & (~mask);
-    write_sie(sie);
+    // unsigned long sie = read_sie();
+    // mask = (1UL << 9) | (1UL << 5) | (1UL << 1);
+    // sie = sie & (~mask);
+    // write_sie(sie);
 }
 
 // void disable_software_interrupt();

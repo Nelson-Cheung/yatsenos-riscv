@@ -15,6 +15,11 @@ _start:
     la t0, _machine_interrupt_handler
     csrw mtvec, t0
 
+    la t0, mstack0
+    csrw mscratch, t0
+    la t0, sstack0
+    csrw sscratch, t0
+
     # 设置S mode中断处理程序地址
     la t0, _supervisor_interrupt_handler
     csrw stvec, t0
@@ -26,9 +31,9 @@ _start:
     csrs medeleg, t0
 
     # enable interrupt
-    li t0, 0xaa
+    li t0, 0x80
     csrs mstatus, t0
-    li t0, 0xaaa
+    li t0, 0x888
     csrs mie, t0
 
     # 从M mode进入S mode
@@ -41,10 +46,14 @@ _start:
     mret 
 
 _enter_supervisor_mode:
+    csrw sstatus, zero
+    csrw sie, zero
+
     # DEBUG所用
     li t0, 1 << 18
     csrs sstatus, t0
     ########
+
     call kernel_entry
     
     # 设置用户态
@@ -61,15 +70,56 @@ _finish:
     j _finish
 
 _machine_interrupt_handler:
+    # 不要出现load、store指令，否则会出错
+    csrrw sp, mscratch, sp
+    sd ra, 0 * 8(sp)
+
+    sd t0, 1 * 8(sp)
+    sd t1, 2 * 8(sp)
+    sd t2, 3 * 8(sp)
+    sd t3, 4 * 8(sp)
+    sd t4, 5 * 8(sp)
+    sd t5, 6 * 8(sp)
+    sd t6, 7 * 8(sp)
+
+    sd a0, 8 * 8(sp)
+    sd a1, 9 * 8(sp)
+    sd a2, 10 * 8(sp)
+    sd a3, 11 * 8(sp)
+    sd a4, 12 * 8(sp)
+    sd a5, 13 * 8(sp)
+    sd a6, 14 * 8(sp)
+    sd a7, 15 * 8(sp)
+
     call machine_interrupt_handler
+
+    ld ra, 0 * 8(sp)
+
+    ld t0, 1 * 8(sp)
+    ld t1, 2 * 8(sp)
+    ld t2, 3 * 8(sp)
+    ld t3, 4 * 8(sp)
+    ld t4, 5 * 8(sp)
+    ld t5, 6 * 8(sp)
+    ld t6, 7 * 8(sp)
+
+    ld a0, 8 * 8(sp)
+    ld a1, 9 * 8(sp)
+    ld a2, 10 * 8(sp)
+    ld a3, 11 * 8(sp)
+    ld a4, 12 * 8(sp)
+    ld a5, 13 * 8(sp)
+    ld a6, 14 * 8(sp)
+    ld a7, 15 * 8(sp)
+    csrrw sp, mscratch, sp
+
     mret
+
+_machine_interrupt_error:
+    j _machine_interrupt_error
 
 _supervisor_interrupt_handler:
     csrr t0, sstatus
     csrr t1, sip
     csrr t2, scause
     j _supervisor_interrupt_handler
-
-.data
-.align 12 # 必须加上
-stack0 : .dword 4096

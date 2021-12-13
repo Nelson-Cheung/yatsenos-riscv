@@ -54,10 +54,16 @@ start_process:
     mv t0, sp
     addi t0, t0, 8 * 32
     sd t0, 0(a0)
-    mv tp, t0
+    
 
     # 设置用户态
-    csrs sstatus, zero
+    # csrs sstatus, zero
+    # 允许中断
+
+    li t0, 1 << 8
+    csrc sstatus, t0
+    li t0, 1 << 5
+    csrs sstatus, t0
 
     ld x1, 8 * 1 (sp)
     # sp 最后设置
@@ -194,7 +200,48 @@ read_scause:
     ret
 
 asm_interrupt_handler:
+    csrrw sp, sscratch, sp
+    sd ra, 0 * 8(sp)
+
+    sd t0, 1 * 8(sp)
+    sd t1, 2 * 8(sp)
+    sd t2, 3 * 8(sp)
+    sd t3, 4 * 8(sp)
+    sd t4, 5 * 8(sp)
+    sd t5, 6 * 8(sp)
+    sd t6, 7 * 8(sp)
+
+    sd a0, 8 * 8(sp)
+    sd a1, 9 * 8(sp)
+    sd a2, 10 * 8(sp)
+    sd a3, 11 * 8(sp)
+    sd a4, 12 * 8(sp)
+    sd a5, 13 * 8(sp)
+    sd a6, 14 * 8(sp)
+    sd a7, 15 * 8(sp)
+
     call supervisor_interrupt_handler
+
+    ld ra, 0 * 8(sp)
+
+    ld t0, 1 * 8(sp)
+    ld t1, 2 * 8(sp)
+    ld t2, 3 * 8(sp)
+    ld t3, 4 * 8(sp)
+    ld t4, 5 * 8(sp)
+    ld t5, 6 * 8(sp)
+    ld t6, 7 * 8(sp)
+
+    ld a0, 8 * 8(sp)
+    ld a1, 9 * 8(sp)
+    ld a2, 10 * 8(sp)
+    ld a3, 11 * 8(sp)
+    ld a4, 12 * 8(sp)
+    ld a5, 13 * 8(sp)
+    ld a6, 14 * 8(sp)
+    ld a7, 15 * 8(sp)
+    csrrw sp, sscratch, sp
+
     sret
 
 

@@ -7,9 +7,9 @@
 #define SYSCALL_EXIT 1UL
 
 unsigned long write(const char *s);
-unsigned long do_write(const char *s);
-
 void exit(long status);
+
+unsigned long do_write(const char *s);
 void do_exit(long status);
 
 #endif

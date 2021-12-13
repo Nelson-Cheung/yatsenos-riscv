@@ -19,9 +19,10 @@ extern "C" unsigned long supervisor_interrupt_handler(unsigned long a0, unsigned
         {
         case 0x5: // timer
         {
-            unsigned long mtime = driver.timer.read_mtime();
-            driver.timer.write_mtimecmp(mtime + 0xffffff);
+            // supervisor 处理时钟中断
             driver.uart.putstr("timer interrupt\n");
+            unsigned long mtime = driver.timer.read_mtime();
+            driver.timer.write_mtimecmp(mtime + 0xffffffUL);
             supervisor_timer_interrupt_done();
             break;
         }
@@ -94,17 +95,31 @@ extern "C" long machine_interrupt_handler(unsigned long scause)
         {
         case 0x7: // timer
         {
-            driver.timer.write_mtimecmp(~(1UL << 63));
+            unsigned long sstatus = read_sstatus();
+            unsigned long sie = read_sie();
+
             driver.uart.putstr("machine timer interrupt\n");
-            unsigned long mip = read_mip();
-            mask = 1UL << 5;
-            mip = mip & (~mask);
-            mip = mip | mask;
-            write_mip(mip);
+            if ((sstatus & (1UL << 1)) && (sie & (1UL << 5)))
+            {
+                driver.uart.putstr("delegate machine timer interrupt\n");
+                driver.timer.write_mtimecmp(~(1UL << 63));
+                unsigned long mip = read_mip();
+                mask = 1UL << 5;
+                mip = mip & (~mask);
+                mip = mip | mask;
+                write_mip(mip);
+            }
+            else
+            {
+                driver.uart.putstr("ignore machine timer interrupt\n");
+                unsigned long mtime = driver.timer.read_mtime();
+                driver.timer.write_mtimecmp(mtime + 0xffffffUL);
+            }
+
             break;
         }
         default:
-            driver.uart.putstr("unhandled interrupt\n");
+            driver.uart.putstr("unhandled machine interrupt\n");
             while (true)
                 ;
             break;
@@ -138,7 +153,7 @@ extern "C" long machine_interrupt_handler(unsigned long scause)
             break;
 
         default:
-            driver.uart.putstr("unhandled interrupt\n");
+            driver.uart.putstr("unhandled machine interrupt\n");
             while (true)
                 ;
             break;

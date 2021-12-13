@@ -2,5 +2,6 @@
 
 int main() {
     write("Hello Process!\n");
+    while(true);
     return -1;
 }

@@ -66,26 +66,33 @@ unsigned long *ProcessManager::create_process_l2_page_table()
     unsigned long *l2_pte = nullptr;
     unsigned long bytes_per_l2_item = 1UL << 30;
 
-    pair<unsigned long, unsigned long> mmio, kernel;
+    // pair<unsigned long, unsigned long> mmio, kernel;
 
-    mmio.first = MMIO_BASE;
-    mmio.second = MMIO_END;
+    // mmio.first = MMIO_BASE;
+    // mmio.second = MMIO_END;
 
-    kernel.first = KERNEL_SPACE_BASE;
-    kernel.second = KERNEL_SAPCE_END;
+    // kernel.first = KERNEL_SPACE_BASE;
+    // kernel.second =  kernel.first + MEMORY_SIZE;
 
-    pair<unsigned long, unsigned long> address_set[] = {mmio, kernel};
+    // pair<unsigned long, unsigned long> address_set[] = {mmio, kernel};
 
-    for (unsigned long i = 0; i < sizeof(address_set) / sizeof(pair<unsigned long, unsigned long>); ++i)
+    // for (unsigned long i = 0; i < sizeof(address_set) / sizeof(pair<unsigned long, unsigned long>); ++i)
+    // {
+    //     for (unsigned long addr = address_set[i].first; addr < address_set[i].second; addr += bytes_per_l2_item)
+    //     {
+    //         l2 = memory_manager.l2_pte_index(addr);
+    //         l2_pte = memory_manager.l2_pte_pointer(addr);
+    //         process_l2_page_table[l2] = *l2_pte;
+    //     }
+    // }
+
+    l2_pte = (unsigned long *)memory_manager.l2_page_table;
+    for (int i = 0; i < 512; ++i)
     {
-        for (unsigned long addr = address_set[i].first; addr < address_set[i].second; addr += bytes_per_l2_item)
-        {
-            l2 = memory_manager.l2_pte_index(addr);
-            l2_pte = memory_manager.l2_pte_pointer(addr);
-            process_l2_page_table[l2] = *l2_pte;
-        }
+        process_l2_page_table[i] = l2_pte[i];
     }
 
+    
     return process_l2_page_table;
 }
 
@@ -126,7 +133,7 @@ unsigned long ProcessManager::create_process(const char *filename)
 
     printf("user stack: 0x%lx\n", USER_SAPCE_END - PAGE_SIZE);
 
-    memory_manager.connect_virtual_physical_address(pcb->l2_page_table, new_page, USER_SAPCE_END - PAGE_SIZE, PTE_V | PTE_R | PTE_W | PTE_X | PTE_U);
+    memory_manager.connect_virtual_physical_address(pcb->l2_page_table, new_page, USER_SAPCE_END - PAGE_SIZE, PTE_V | PTE_R | PTE_W | PTE_U);
     // memory_manager.connect_virtual_physical_address(memory_manager.l2_page_table, new_page, USER_SAPCE_END - PAGE_SIZE, PTE_V | PTE_R | PTE_W | PTE_U);
 
     // 加载程序到内存

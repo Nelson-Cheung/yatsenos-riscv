@@ -3,7 +3,7 @@ VPATH = driver include kernel user
 PREFIX = riscv64-unknown-linux-gnu
 CXX = $(PREFIX)-g++
 INCLUDE = include
-CXX_FLAGS = -c -g -Wall -nostdlib -O0 -fno-builtin -ffreestanding -fno-pic -I$(INCLUDE) -mcmodel=medany
+CXX_FLAGS = -c -g -Wall -nostdlib -I$(INCLUDE) -mcmodel=medany -ffreestanding -nostartfiles
 
 
 AS = $(PREFIX)-as
@@ -15,7 +15,6 @@ OBJ += driver.o uart.o init.o asm_utils.o interrupt.o clint.o timer.o utils.o \
 address_pool.o bitmap.o mem.o \
 list.o process.o proc_zero.o \
 syscall_manager.o
-
 
 $(TARGET) : $(OBJ)
 	$(LD) $^ -Ttext 0x80000000 -e _start -o $@

@@ -35,6 +35,8 @@ extern "C" void rv64_kernel_init()
 
 extern unsigned char zero[];
 
+#include "syscall.h"
+
 extern "C" void kernel_entry()
 {
     rv64_kernel_init();
@@ -72,4 +74,6 @@ extern "C" void kernel_entry()
            "print long decimal: \"-122147483647\": %ld\n"
            "pritn long hexadecimal \"0x123456789a\": %lx\n",
            'N', "Hello World!", -1234, 0x7abcdef0, -122147483647, 0x123456789a);
+
+    return;
 }

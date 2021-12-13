@@ -132,7 +132,6 @@ int printf(const char *const fmt, ...)
     {
         if (fmt[i] != '%')
         {
-            // counter += printf_add_to_buffer(buffer, fmt[i], idx, BUF_LEN);
             printf_add_to_buffer(buffer, fmt[i], idx, BUF_LEN);
         }
         else
@@ -240,6 +239,6 @@ void memcpy(void *src, void *dst, unsigned long length)
     }
 }
 
-unsigned long strlen(const char *s) {
-
+unsigned long strlen(const char *s)
+{
 }

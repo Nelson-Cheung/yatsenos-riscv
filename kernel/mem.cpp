@@ -96,7 +96,7 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 
         while (current < address[i].second)
         {
-            connect_virtual_physical_address(l2_page_table,current, current, PTE_V | PTE_R | PTE_W | PTE_X | PTE_U);
+            connect_virtual_physical_address(l2_page_table,current, current, PTE_V | PTE_R | PTE_W | PTE_X);
             current += PAGE_SIZE;
         }
     }

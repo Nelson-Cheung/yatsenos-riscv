@@ -43,7 +43,8 @@ start_process:
     srli t1, t1, 12
     or t0, t1, t0
     csrw satp, t0
-
+    sfence.vma zero, zero
+    
     # 设置进程进入点
     ld t0, 8(sp)
     csrw sepc, t0
@@ -53,6 +54,7 @@ start_process:
     mv t0, sp
     addi t0, t0, 8 * 32
     sd t0, 0(a0)
+    mv tp, t0
 
     # 设置用户态
     csrs sstatus, zero
@@ -96,6 +98,7 @@ start_process:
 # extern "C" void write_satp(unsigned long);
 write_satp:
     csrw satp, a0
+    sfence.vma zero, zero
     ret
 
 # extern "C" unsigned long read_mepc();

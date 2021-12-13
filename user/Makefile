@@ -15,7 +15,6 @@ LD = $(PREFIX)-ld
 TARGET = 
 OBJ = proc_zero.cpp
 
-
 all: $(OBJ)
 
 lib_utils.o: lib_utils.s

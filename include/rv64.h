@@ -3,6 +3,9 @@
 
 extern "C" unsigned long read_a0();
 
+extern "C" unsigned long read_mie();
+extern "C" void write_mie(unsigned long);
+
 extern "C" unsigned long read_mepc();
 extern "C" void write_mepc(unsigned long);
 
@@ -31,6 +34,7 @@ extern "C" unsigned long read_sip();
 extern "C" void supervisor_timer_interrupt_done();
 
 extern "C" void write_satp(unsigned long);
+extern "C" unsigned long read_satp();
 
 extern "C" unsigned long read_a0();
 extern "C" unsigned long read_a1();
@@ -80,5 +84,20 @@ struct Registers
 #include "pcb.h"
 extern "C" PCB *switch_to(void *current, void *next);
 extern "C" void start_process(PCB *pcb);
+
+struct ScratchRegister
+{
+    unsigned long stack[4096];
+    unsigned long status;
+    unsigned long epc;
+    unsigned long cause;
+};
+
+#define MSTATUS_MIE (1UL << 3)
+#define MSTATUS_MPIE (1UL << 7)
+
+#define MIP_STIP (1UL << 5)
+
+#define MIE_MTIE (1UL << 7)
 
 #endif

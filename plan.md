@@ -291,3 +291,7 @@ kernel，用于进程间共享
 GDB Cannot insert breakpoint, Cannot access memory at address XXX
 ```
 6. debug技巧：sstatus.sum = 1, 所有内存页的映射U=1，这样既可以在User mode中访问Supervisor mode的页。
+7.
+
+# 重要假设
+1. 假设时钟中断处理的时间小于时钟中断的间隔

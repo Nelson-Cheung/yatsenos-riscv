@@ -19,32 +19,38 @@
 .global write_satp
 .global switch_to 
 .global start_process
+.global read_satp
+.global read_mie
+.global write_mie
+
+# extern "C" unsigned long read_mie();
+read_mie:
+    csrr a0, mie
+    ret
+
+# extern "C" void write_mie(unsigned long);
+write_mie:
+    csrw mie, a0
+    ret
+
+# extern "C" unsigned long read_satp();
+read_satp:
+    csrr a0, satp
+    ret
 
 switch_to:
-    addi sp, sp, -8
+    addi sp, sp, -8 * 1
     sd ra, 0(sp)
-    
+
     sd sp, 0(a0)
     ld sp, 0(a1)
 
     ld ra, 0(sp)
-    addi sp, sp, 8
-
-    mv a0, a1
+    addi sp, sp, 8 * 1
 
     ret
 
-start_process:
-    # 切换页表
-    li t0, 0xfffff00000000000
-    csrr t1, satp
-    and t0, t1, t0
-    ld t1, 0(sp)
-    srli t1, t1, 12
-    or t0, t1, t0
-    csrw satp, t0
-    sfence.vma zero, zero
-    
+start_process:    
     # 设置进程进入点
     ld t0, 8(sp)
     csrw sepc, t0
@@ -201,6 +207,9 @@ read_scause:
 
 asm_interrupt_handler:
     csrrw sp, sscratch, sp
+    
+    addi sp, sp, -128
+
     sd ra, 0 * 8(sp)
 
     sd t0, 1 * 8(sp)
@@ -240,8 +249,11 @@ asm_interrupt_handler:
     ld a5, 13 * 8(sp)
     ld a6, 14 * 8(sp)
     ld a7, 15 * 8(sp)
+
+    addi sp, sp, 128
     csrrw sp, sscratch, sp
 
+    ecall
     sret
 
 

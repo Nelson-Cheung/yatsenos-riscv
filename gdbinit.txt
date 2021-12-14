@@ -9,7 +9,6 @@ b asm_interrupt_handler
 b _finish
 b start_process
 b kernel/init.cpp:50
-b MemoryManager::initialize
 b write_satp
 layout src
 layout regs

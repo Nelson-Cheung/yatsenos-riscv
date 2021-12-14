@@ -2,8 +2,18 @@
 
 .text
 _start:
-    nop
+    li t0, 4096 * 8
+
     la sp, stack0
+    add sp, sp, t0
+
+    la t1, mstack0
+    add t1, t1, t0
+    csrw mscratch, t1
+
+    la t1, sstack0
+    add t1, t1, t0
+    csrw sscratch, t1
 
     # 关闭PMP
     li t0, 0x3fffffffffffff
@@ -15,20 +25,16 @@ _start:
     la t0, _machine_interrupt_handler
     csrw mtvec, t0
 
-    la t0, mstack0
-    csrw mscratch, t0
-    la t0, sstack0
-    csrw sscratch, t0
-
     # 设置S mode中断处理程序地址
     la t0, _supervisor_interrupt_handler
     csrw stvec, t0
 
     # 将M mode的中断转发到S mode中处理
-    li t0, 0x222
-    csrs mideleg, t0
-    li t0, 0xb1ff
-    csrs medeleg, t0
+    # 不支持中断嵌套
+    li t0, 0x20
+    csrw mideleg, t0
+    # li t0, 0xb1ff
+    # csrs medeleg, t0
 
     # enable interrupt
     li t0, 0x80
@@ -70,8 +76,10 @@ _finish:
     j _finish
 
 _machine_interrupt_handler:
-    # 不要出现load、store指令，否则会出错
+    # Calling Convention, ra, t0~t6, a0~a7由caller保存
     csrrw sp, mscratch, sp
+    addi sp, sp, -8 * 16
+
     sd ra, 0 * 8(sp)
 
     sd t0, 1 * 8(sp)
@@ -111,12 +119,11 @@ _machine_interrupt_handler:
     ld a5, 13 * 8(sp)
     ld a6, 14 * 8(sp)
     ld a7, 15 * 8(sp)
+
+    addi sp, sp, 8 * 16
     csrrw sp, mscratch, sp
 
     mret
-
-_machine_interrupt_error:
-    j _machine_interrupt_error
 
 _supervisor_interrupt_handler:
     csrr t0, sstatus

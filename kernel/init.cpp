@@ -53,8 +53,14 @@ extern "C" void kernel_entry()
     mtimecmp = driver.timer.read_mtimecmp();
     driver.timer.write_mtimecmp(mtime + 0x2ffffffUL);
     // driver.clint.disable_interrupt();
-    // while(true);
-    switch_to(&none, pcb);
+    while(true);
+    // switch_to(&none, pcb);
+
+    // unsigned long satp = read_satp();
+    // satp &= 0xfffff00000000000;
+    // satp |= pcb->l2_page_table;
+    // write_satp(satp);
+    // switch_to(&none, pcb);
 
     return;
 

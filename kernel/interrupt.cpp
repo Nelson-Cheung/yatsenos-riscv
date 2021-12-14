@@ -3,11 +3,9 @@
 #include "driver.h"
 #include "object.h"
 #include "syscall.h"
+#include "utils.h"
 
-extern "C" unsigned long supervisor_interrupt_handler(unsigned long a0, unsigned long a1,
-                                                      unsigned long a2, unsigned long a3,
-                                                      unsigned long a4, unsigned long a5,
-                                                      unsigned long a6, unsigned long a7)
+extern "C" unsigned long supervisor_interrupt_handler()
 {
     unsigned long cause = read_scause();
     unsigned long mask = 0x7fffffffffffffffL;
@@ -20,14 +18,13 @@ extern "C" unsigned long supervisor_interrupt_handler(unsigned long a0, unsigned
         case 0x5: // timer
         {
             // supervisor 处理时钟中断
-            driver.uart.putstr("timer interrupt\n");
+            printf("timer interrupt\n");
             unsigned long mtime = driver.timer.read_mtime();
             driver.timer.write_mtimecmp(mtime + 0xffffffUL);
-            supervisor_timer_interrupt_done();
             break;
         }
         default:
-            driver.uart.putstr("unhandled interrupt\n");
+            printf("unhandled interrupt\n");
             while (true)
                 ;
             break;
@@ -35,128 +32,151 @@ extern "C" unsigned long supervisor_interrupt_handler(unsigned long a0, unsigned
     }
     else
     {
-        unsigned long sepc = 0;
-        switch (cause & mask)
-        {
-        case 0x8: // ecall from U mode
-        {
-            if (a0 == SYSCALL_WRITE)
-            {
-                unsigned long ans = do_write((const char *)a1);
-                sepc = read_sepc();
-                write_sepc(sepc + 4);
-                return ans;
-            }
-            else if (a0 == SYSCALL_EXIT)
-            {
-                do_exit(a1);
-            }
-            else
-            {
-                printf("unhandled syscall\n");
-            }
-            break;
-        }
-
-        case 0x9: // ecall from S mode
-            driver.uart.putstr("ecall from S mode\n");
-            sepc = read_sepc() + 4;
-            write_sepc(sepc);
-            break;
-
-        case 0xc: // Instruction page fault
-            sepc = read_sepc();
-            if (sepc == 0)
-            {
-                do_exit(a0);
-            }
-            else
-            {
-                printf("unhandled interrupt\n");
-            }
-        default:
-            driver.uart.putstr("unhandled interrupt\n");
-            while (true)
-                ;
-            break;
-        }
+        printf("unhandled exception\n");
     }
 }
 
-extern "C" long machine_interrupt_handler(unsigned long scause)
+// extern "C" long machine_interrupt_handler(unsigned long scause)
+// {
+//     unsigned long cause = read_mcause();
+//     unsigned long mask = 0x7fffffffffffffffUL;
+
+//     if (cause >> 63)
+//     {
+//         // interrupt 转发
+//         switch (cause & mask)
+//         {
+//         case 0x7: // timer
+//         {
+//             unsigned long sstatus = read_sstatus();
+//             unsigned long sie = read_sie();
+
+//             driver.uart.putstr("machine timer interrupt\n");
+//             if ((sstatus & (1UL << 1)) && (sie & (1UL << 5)))
+//             {
+//                 driver.uart.putstr("delegate machine timer interrupt\n");
+//                 driver.timer.write_mtimecmp(~(1UL << 63));
+
+//                 unsigned long mip = read_mip();
+//                 mask = 1UL << 5;
+//                 mip = mip & (~mask);
+//                 mip = mip | mask;
+//                 write_mip(mip);
+
+//                 unsigned long mie = read_mie();
+
+//             }
+//             else
+//             {
+//                 driver.uart.putstr("ignore machine timer interrupt\n");
+//                 unsigned long mtime = driver.timer.read_mtime();
+//                 driver.timer.write_mtimecmp(mtime + 0xffffffUL);
+//             }
+
+//             break;
+//         }
+//         default:
+//             driver.uart.putstr("unhandled machine interrupt\n");
+//             while (true)
+//                 ;
+//             break;
+//         }
+//     }
+//     else
+//     {
+//         unsigned long mepc = 0;
+//         switch (cause & mask)
+//         {
+//         case 0x9: // ecall from S mode
+//             driver.uart.putstr("ecall from S mode\n");
+//             mepc = read_mepc() + 4;
+//             write_mepc(mepc);
+//             mask = ~(1UL << 63);
+//             if ((scause >> 63) && ((scause & mask) == 0x05))
+//             {
+//                 mask = 1UL << 5;
+//                 unsigned long ip = read_mip();
+//                 ip = ip & (~mask);
+//                 write_mip(ip);
+//             }
+//             else
+//             {
+//                 driver.uart.putstr("Unhandled...\n");
+//             }
+//             break;
+
+//         default:
+//             driver.uart.putstr("unhandled machine interrupt\n");
+//             while (true)
+//                 ;
+//             break;
+//         }
+//     }
+// }
+
+long test()
 {
-    unsigned long cause = read_mcause();
-    unsigned long mask = 0x7fffffffffffffffUL;
+    return -1;
+}
 
-    if (cause >> 63)
+extern "C" unsigned long machine_interrupt_handler(
+    unsigned long a0, unsigned long a1,
+    unsigned long a2, unsigned long a3,
+    unsigned long a4, unsigned long a5,
+    unsigned long a6, unsigned long a7)
+{
+    unsigned long mask, mcause, reg;
+
+    mask = 1UL << 63;
+    mcause = read_mcause();
+
+    if (mcause & mask)
     {
-        // interrupt 转发
-        switch (cause & mask)
+        // interrupt
+        mcause &= ~mask;
+        if (mcause == 7)
         {
-        case 0x7: // timer
-        {
-            unsigned long sstatus = read_sstatus();
-            unsigned long sie = read_sie();
+            // 转发timer中断到S mode处理，关闭timer中断
+            printf("delegate machine timer interrupt\n");
 
-            driver.uart.putstr("machine timer interrupt\n");
-            if ((sstatus & (1UL << 1)) && (sie & (1UL << 5)))
-            {
-                driver.uart.putstr("delegate machine timer interrupt\n");
-                driver.timer.write_mtimecmp(~(1UL << 63));
-                unsigned long mip = read_mip();
-                mask = 1UL << 5;
-                mip = mip & (~mask);
-                mip = mip | mask;
-                write_mip(mip);
-            }
-            else
-            {
-                driver.uart.putstr("ignore machine timer interrupt\n");
-                unsigned long mtime = driver.timer.read_mtime();
-                driver.timer.write_mtimecmp(mtime + 0xffffffUL);
-            }
+            driver.timer.write_mtimecmp(~(1UL << 63));
 
-            break;
+            reg = read_mip();
+            reg &= ~MIP_STIP;
+            reg |= MIP_STIP;
+            write_mip(reg);
         }
-        default:
-            driver.uart.putstr("unhandled machine interrupt\n");
+        else
+        {
+            printf("unhandled exception\n");
             while (true)
                 ;
-            break;
         }
     }
     else
     {
-        unsigned long mepc = 0;
-        switch (cause & mask)
+        // exception
+        mcause &= ~mask;
+        if (mcause == 9)
         {
-        case 0x9: // ecall from S mode
-            driver.uart.putstr("ecall from S mode\n");
-            mepc = read_mepc() + 4;
-            write_mepc(mepc);
-            mask = ~(1UL << 63);
-            if ((scause >> 63) && ((scause & mask) == 0x05))
-            {
-                mask = 1UL << 5;
-                unsigned long ip = read_mip();
-                ip = ip & (~mask);
-                write_mip(ip);
+            unsigned long scause;
 
-                ip = read_sip();
-                ip = ip & (~mask);
-                write_sip(ip);
-            }
-            else
+            scause = read_scause() & ~mask;
+            
+            if (scause == 5)
             {
-                driver.uart.putstr("Unhandled...\n");
-            }
-            break;
+                reg = read_mip();
+                reg &= ~MIP_STIP;
+                write_mip(reg);
 
-        default:
-            driver.uart.putstr("unhandled machine interrupt\n");
+                write_mepc(read_mepc() + 4);
+            }
+        }
+        else
+        {
+            printf("unhandled exception\n");
             while (true)
                 ;
-            break;
         }
     }
 }

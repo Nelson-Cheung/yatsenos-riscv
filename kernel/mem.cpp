@@ -134,7 +134,7 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
     write_satp(satp);
 
     unsigned long addr = (unsigned long)&TEST;
-    printf("%lx %lx %lx\n", *l2_pte_pointer(addr), *l1_pte_pointer(addr), *l0_pte_pointer(addr));
+    // printf("%lx %lx %lx\n", *l2_pte_pointer(addr), *l1_pte_pointer(addr), *l0_pte_pointer(addr));
 
     // unsigned long paddr = addr & 0xfffUL;
 }
@@ -148,10 +148,10 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
     l1 = (vaddr & PPN1_MASK) >> 21;
     l0 = (vaddr & PPN0_MASK) >> 12;
 
-    if (vaddr == 0x3fffff000UL)
-    {
-        printf("%ld %ld %ld\n", l2, l1, l0);
-    }
+    // if (vaddr == 0x3fffff000UL)
+    // {
+    //     printf("%ld %ld %ld\n", l2, l1, l0);
+    // }
 
     pte = ((unsigned long *)l2_page_table);
     if ((pte[l2] & PTE_V) == 0)

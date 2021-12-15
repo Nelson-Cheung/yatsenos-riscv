@@ -24,7 +24,8 @@ extern "C" unsigned long supervisor_interrupt_handler(
             // supervisor 处理时钟中断
             printf("timer interrupt\n");
             unsigned long mtime = driver.timer.read_mtime();
-            driver.timer.write_mtimecmp(mtime + 0xffffffUL);
+            driver.timer.write_mtimecmp(mtime + TIME_INTERRUPT_DURATION);
+            process_manager.schedule();
             break;
         }
         default:
@@ -43,7 +44,7 @@ extern "C" unsigned long supervisor_interrupt_handler(
             unsigned long reg = read_sepc();
             write_sepc(reg + 4);
             driver.clint.enable_interrupt();
-            reg =  syscall_manager.handle_syscall(a0, a1, a2, a3, a4, a5, a6, a7);
+            reg = syscall_manager.handle_syscall(a0, a1, a2, a3, a4, a5, a6, a7);
             driver.clint.disable_interrupt();
             return reg;
             break;

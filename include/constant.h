@@ -20,5 +20,7 @@
 #define MAX_PROGRAM_NAME 16UL
 #define MAX_PROGRAM_AMOUNT 32UL
 
+// 时钟中断
+#define TIME_INTERRUPT_DURATION 0xffffffUL
 
 #endif 

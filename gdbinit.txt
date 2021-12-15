@@ -11,5 +11,6 @@ b start_process
 b kernel/init.cpp:50
 b write_satp
 b switch_to
+b ProcessManager::schedule
 layout src
 layout regs

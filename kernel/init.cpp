@@ -21,9 +21,9 @@ extern "C" void rv64_kernel_init()
     driver.initialize();
     driver.clint.set_interrupt_handler((unsigned long)asm_interrupt_handler);
 
-    printf("%lx\n", &driver);
-    printf("%lx\n", &memory_manager);
-    printf("%lx\n", &process_manager);
+    // printf("%lx\n", &driver);
+    // printf("%lx\n", &memory_manager);
+    // printf("%lx\n", &process_manager);
 
     memory_manager.initialize();
 }
@@ -38,25 +38,44 @@ extern "C" void kernel_entry()
 
     process_manager.initialize();
     unsigned long pid = process_manager.create_process((const char *)zero);
-    printf("zero process: %ld\n", pid);
+    // printf("zero process: %ld\n", pid);
 
     if (pid)
     {
         return;
     }
 
-    PCB *pcb = ListItem2PCB(process_manager.ready_process.front(), schedule_tag);
-    PCB none;
+    pid = process_manager.create_process((const char *)zero);
+    printf("next process: %ld, process list size: %d\n", pid, process_manager.ready_process.size());
+    if (pid == -1UL)
+    {
+        return;
+    }
+
+    pid = process_manager.create_process((const char *)zero);
+    printf("next process: %ld, process list size: %d\n", pid, process_manager.ready_process.size());
+    if (pid == -1UL)
+    {
+        return;
+    }
+
+    // while(true);
 
     driver.clint.enable_interrupt();
     driver.clint.enable_timer_interrupt();
     unsigned long mtime, mtimecmp;
     mtime = driver.timer.read_mtime();
     driver.timer.write_mtimecmp(mtime + 0x2ffffffUL);
-    // driver.clint.disable_interrupt();
+    driver.clint.disable_interrupt();
     // while(true);
 
+    PCB *pcb = ListItem2PCB(process_manager.ready_process.front(), schedule_tag);
+    PCB none;
+
+    process_manager.ready_process.pop_front();
+    pcb->status = ProcessStatus::RUNNING;
     process_manager.set_l2_page_table(pcb->l2_page_table);
+    process_manager.current_running_process = pcb;
     switch_to(&none, pcb);
 
     return;

@@ -8,5 +8,6 @@
 extern class Driver driver;
 extern MemoryManager memory_manager;
 extern SystemCallManager syscall_manager;
+extern ProcessManager process_manager;
 
 #endif

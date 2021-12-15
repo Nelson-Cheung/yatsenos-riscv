@@ -12,6 +12,7 @@ public:
 private:
     unsigned long do_write(const char *s);
     void do_exit(long status);
+    void do_test();
 };
 
 #endif

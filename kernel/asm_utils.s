@@ -136,9 +136,12 @@ switch_to:
     ret
 
 start_process:   
-
     addi t0, sp, 8 * 32
     csrrw t0, sscratch, t0
+    
+    li t0, 0x8000000000000005
+    csrw scause, t0
+    ecall
 
     ld x1, 8 * 1 (sp)
     # sp 最后设置

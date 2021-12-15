@@ -37,6 +37,7 @@ PCB *ProcessManager::allocate_pcb()
         {
             PCB_SET_STATUS[i] = true;
             PCB *ans = (PCB *)((unsigned long)PCB_SET + PCB_SIZE * i);
+            memset(ans, 0, PCB_SIZE);
             ans->pid = i;
             return ans;
         }
@@ -103,8 +104,6 @@ unsigned long ProcessManager::create_process(const char *filename)
         return -1UL;
     }
 
-    memset(pcb, 0, PCB_SIZE);
-
     pcb->status = ProcessStatus::READY;
     pcb->total_ticks = 0;
     pcb->ticks_after_schedule = 0;
@@ -114,11 +113,13 @@ unsigned long ProcessManager::create_process(const char *filename)
     unsigned long addr = (unsigned long)&TEST;
     unsigned long index = memory_manager.l2_pte_index(addr);
 
-    printf("%lx %lx\n", page_table, page_table[index]);
+    // printf("%lx %lx\n", page_table, page_table[index]);
 
     pcb->stack = (unsigned long *)((unsigned long)pcb + PCB_SIZE - sizeof(Registers));
 
     Registers *registers = (Registers *)pcb->stack;
+    memset(registers, 0, sizeof(Registers));
+
     // 通过page fault来处理
     registers->ra = 0;
 
@@ -130,7 +131,7 @@ unsigned long ProcessManager::create_process(const char *filename)
         return -1UL;
     }
 
-    printf("user stack: 0x%lx\n", USER_SAPCE_END - PAGE_SIZE);
+    // printf("user stack: 0x%lx\n", USER_SAPCE_END - PAGE_SIZE);
 
     memory_manager.connect_virtual_physical_address(pcb->l2_page_table, new_page, USER_SAPCE_END - PAGE_SIZE, PTE_V | PTE_R | PTE_W | PTE_U);
     // memory_manager.connect_virtual_physical_address(memory_manager.l2_page_table, new_page, USER_SAPCE_END - PAGE_SIZE, PTE_V | PTE_R | PTE_W | PTE_U);
@@ -172,7 +173,7 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
             continue;
         }
 
-        printf("%d: %lx\n", i, phdr_ptr->p_vaddr);
+        // printf("%d: %lx\n", i, phdr_ptr->p_vaddr);
 
         current = filename + phdr_ptr->p_offset;
         for (unsigned long offset = 0; offset < phdr_ptr->p_filesz; offset += PAGE_SIZE)
@@ -210,7 +211,7 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
                 flags |= PTE_W;
             }
 
-            printf("flags: %lx\n", flags);
+            // printf("flags: %lx\n", flags);
 
             memory_manager.connect_virtual_physical_address(l2_page_table, new_page, phdr_ptr->p_vaddr + offset, flags);
         }
@@ -229,9 +230,43 @@ void ProcessManager::set_l2_page_table(unsigned long address)
 
 void ProcessManager::schedule()
 {
+    if (ready_process.size() < 1)
+    {
+        return;
+    }
+
     // time sharing
     ++current_running_process->total_ticks;
     ++current_running_process->ticks_after_schedule;
 
+    // if (current_running_process->total_ticks <= 5)
+    // {
+    //     return;
+    // }
+
+    if (current_running_process->status == ProcessStatus::RUNNING)
+    {
+        ready_process.push_back(&(current_running_process->schedule_tag));
+        current_running_process->ticks_after_schedule = 0;
+        current_running_process->status = ProcessStatus::READY;
+    }
+    else if (current_running_process->status == ProcessStatus::DEAD)
+    {
+        // 回收
+    }
+
+    ListItem *item = ready_process.front();
+    PCB *next = ListItem2PCB(item, schedule_tag);
+    next->status = ProcessStatus::RUNNING;
+
+    PCB *current = current_running_process;
+    current_running_process = next;
     
+    ready_process.pop_front();
+
+    set_l2_page_table(next->l2_page_table);
+
+    printf("schedule %lx to %lx\n", current, next);
+
+    switch_to(current, next);
 }

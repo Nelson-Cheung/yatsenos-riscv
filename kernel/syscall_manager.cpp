@@ -1,6 +1,8 @@
 #include "syscall.h"
 #include "syscall_manager.h"
 #include "utils.h"
+#include "object.h"
+#include "process.h"
 
 unsigned long SystemCallManager::handle_syscall(unsigned long a0, unsigned long a1,
                                                 unsigned long a2, unsigned long a3,
@@ -9,16 +11,22 @@ unsigned long SystemCallManager::handle_syscall(unsigned long a0, unsigned long 
 {
     switch (a0)
     {
+    case SYSCALL_TEST:
+        do_test();
+        break;
+        
     case SYSCALL_WRITE:
         do_write((const char *)a1);
         break;
-    
+
     case SYSCALL_EXIT:
         do_exit(a1);
         break;
 
     default:
         printf("unhandled interrrupt\n");
+        while (true)
+            ;
         break;
     }
 }
@@ -34,4 +42,9 @@ void SystemCallManager::do_exit(long status)
     printf("process exit\n");
     while (true)
         ;
+}
+
+void SystemCallManager::do_test()
+{
+    process_manager.schedule();
 }

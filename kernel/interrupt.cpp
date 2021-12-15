@@ -42,7 +42,10 @@ extern "C" unsigned long supervisor_interrupt_handler(
         {
             unsigned long reg = read_sepc();
             write_sepc(reg + 4);
-            return syscall_manager.handle_syscall(a0, a1, a2, a3, a4, a5, a6, a7);
+            driver.clint.enable_interrupt();
+            reg =  syscall_manager.handle_syscall(a0, a1, a2, a3, a4, a5, a6, a7);
+            driver.clint.disable_interrupt();
+            return reg;
             break;
         }
         case 12:
@@ -120,6 +123,7 @@ extern "C" unsigned long machine_interrupt_handler()
                     reg = read_sepc();
                     write_mepc(reg);
                     restore_supervisor_csr();
+                    return 0;
                 }
             }
 

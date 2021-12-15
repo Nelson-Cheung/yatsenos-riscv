@@ -1,6 +1,7 @@
 #include "syscall.h"
 
 int main() {
-    write("Hello Process!\n");
+    exit(0);
+    // write("Hello Process!\n");
     while(true);
 }

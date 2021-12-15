@@ -53,7 +53,7 @@ extern "C" void kernel_entry()
     unsigned long mtime, mtimecmp;
     mtime = driver.timer.read_mtime();
     driver.timer.write_mtimecmp(mtime + 0x2ffffffUL);
-    driver.clint.disable_interrupt();
+    // driver.clint.disable_interrupt();
     // while(true);
 
     process_manager.set_l2_page_table(pcb->l2_page_table);

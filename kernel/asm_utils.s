@@ -44,12 +44,13 @@ save_supervisor_csr:
     csrr t0, scause
     sd t0, 2 * 8(sp)
 
+    csrrw sp, sscratch, sp
     csrrw sp, mscratch, sp
     ret
 
 # extern "C" void restore_supervisor_csr();
 restore_supervisor_csr:
-    csrrw sp, mscratch, sp
+    csrrw sp, sscratch, sp
     
     # 此时的sp指向supervisor栈
     ld t0, 0 * 8(sp)
@@ -61,6 +62,7 @@ restore_supervisor_csr:
     addi sp, sp, 8 * 3
 
     csrrw sp, mscratch, sp
+    csrrw sp, sscratch, sp
     ret
 
 # extern "C" void write_scause(unsigned long)

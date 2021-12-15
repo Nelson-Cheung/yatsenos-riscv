@@ -59,14 +59,6 @@ extern "C" void kernel_entry()
     process_manager.set_l2_page_table(pcb->l2_page_table);
     switch_to(&none, pcb);
 
-    while(true);
-
-    // unsigned long satp = read_satp();
-    // satp &= 0xfffff00000000000;
-    // satp |= pcb->l2_page_table;
-    // write_satp(satp);
-    // switch_to(&none, pcb);
-
     return;
 
     printf("initialization finish\n");

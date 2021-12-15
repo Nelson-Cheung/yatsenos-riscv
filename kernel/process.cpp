@@ -226,3 +226,12 @@ void ProcessManager::set_l2_page_table(unsigned long address)
     reg |= (address >> 12);
     write_satp(reg);
 }
+
+void ProcessManager::schedule()
+{
+    // time sharing
+    ++current_running_process->total_ticks;
+    ++current_running_process->ticks_after_schedule;
+
+    
+}

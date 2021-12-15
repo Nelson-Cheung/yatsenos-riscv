@@ -19,7 +19,8 @@ public:
     void initialize();
     unsigned long create_process(const char *filename);
     void set_l2_page_table(unsigned long address);
-
+    void schedule();
+    
 private:
     // 分配PCB
     PCB *allocate_pcb();

@@ -108,37 +108,35 @@ read_satp:
     ret
 
 switch_to:
-    addi sp, sp, -8 * 1
-    sd ra, 0(sp)
+    addi sp, sp, -8 * 4
+
+    sd ra, 0 * 8(sp)
+    csrr t0, sstatus
+    sd t0, 1 * 8(sp)
+    csrr t0, sepc
+    sd t0, 2 * 8(sp)
+    csrr t0, scause
+    sd t0, 3 * 8(sp)
 
     sd sp, 0(a0)
     ld sp, 0(a1)
 
-    ld ra, 0(sp)
-    addi sp, sp, 8 * 1
+    ld ra, 0 * 8(sp)
+    ld t0, 1 * 8(sp)
+    csrw sstatus, t0
+    ld t0, 2 * 8(sp)
+    csrw sepc, t0
+    ld t0, 3 * 8(sp)
+    csrw scause, t0
+
+    addi sp, sp, 8 * 4
 
     ret
 
-start_process:    
-    # 设置进程进入点
-    ld t0, 8(sp)
-    csrw sepc, t0
+start_process:   
 
-    addi sp, sp, 8 * 2
-
-    mv t0, sp
-    addi t0, t0, 8 * 32
-    sd t0, 0(a0)
-    
-
-    # 设置用户态
-    # csrs sstatus, zero
-    # 允许中断
-
-    li t0, 1 << 8
-    csrc sstatus, t0
-    li t0, 1 << 5
-    csrs sstatus, t0
+    addi t0, sp, 8 * 32
+    csrrw t0, sscratch, t0
 
     ld x1, 8 * 1 (sp)
     # sp 最后设置
@@ -172,7 +170,7 @@ start_process:
     ld x30, 8 * 30 (sp)
     ld x31, 8 * 31 (sp)
 
-    ld x2, 8 * 2 (sp)
+    ld sp, 8 * 2 (sp)
 
     sret
 

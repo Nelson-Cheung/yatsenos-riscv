@@ -10,5 +10,6 @@ b _finish
 b start_process
 b kernel/init.cpp:50
 b write_satp
+b switch_to
 layout src
 layout regs

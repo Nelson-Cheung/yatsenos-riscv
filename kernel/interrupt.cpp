@@ -19,7 +19,7 @@ extern "C" unsigned long supervisor_interrupt_handler(
         // 异步exception
         switch (cause & mask)
         {
-        case 0x5: // timer
+        case 5: // timer
         {
             // supervisor 处理时钟中断
             printf("timer interrupt\n");
@@ -38,10 +38,19 @@ extern "C" unsigned long supervisor_interrupt_handler(
     {
         switch (cause & mask)
         {
-        case 8UL: // syscall
+        case 8: // syscall
         {
+            unsigned long reg = read_sepc();
+            write_sepc(reg + 4);
             return syscall_manager.handle_syscall(a0, a1, a2, a3, a4, a5, a6, a7);
             break;
+        }
+        case 12:
+        {
+            if (read_sepc() == 0)
+            {
+                syscall_manager.handle_syscall(SYSCALL_EXIT, a0, 0, 0, 0, 0, 0, 0);
+            }
         }
         default:
             printf("unhandled interrupt\n");
@@ -112,11 +121,9 @@ extern "C" unsigned long machine_interrupt_handler()
                     write_mepc(reg);
                     restore_supervisor_csr();
                 }
-                else
-                {
-                    write_mepc(read_mepc() + 4);
-                }
             }
+
+            write_mepc(read_mepc() + 4);
         }
         else
         {

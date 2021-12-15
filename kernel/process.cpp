@@ -92,7 +92,6 @@ unsigned long *ProcessManager::create_process_l2_page_table()
         process_l2_page_table[i] = l2_pte[i];
     }
 
-    
     return process_l2_page_table;
 }
 
@@ -144,10 +143,11 @@ unsigned long ProcessManager::create_process(const char *filename)
         return -1UL;
     }
 
-    pcb->stack -= 3;
-    pcb->stack[0] = (unsigned long)start_process;
-    pcb->stack[1] = pcb->l2_page_table;
-    pcb->stack[2] = entry;
+    pcb->stack -= 4;
+    pcb->stack[0] = (unsigned long)start_process; // ra
+    pcb->stack[1] = (1UL << 18) | (1UL << 5);     // sstatus
+    pcb->stack[2] = entry;                        // sepc
+    pcb->stack[3] = 0;                            // scause
 
     all_process.push_back(&(pcb->universal_tag));
     ready_process.push_back(&(pcb->schedule_tag));
@@ -217,4 +217,12 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
     }
 
     return ehdr_ptr->e_entry;
+}
+
+void ProcessManager::set_l2_page_table(unsigned long address)
+{
+
+    unsigned long reg = read_satp() & 0xfffff00000000000UL;
+    reg |= (address >> 12);
+    write_satp(reg);
 }

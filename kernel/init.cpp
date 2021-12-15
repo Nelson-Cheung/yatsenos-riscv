@@ -48,14 +48,18 @@ extern "C" void kernel_entry()
     PCB *pcb = ListItem2PCB(process_manager.ready_process.front(), schedule_tag);
     PCB none;
 
-    // driver.clint.enable_interrupt();
-    // driver.clint.enable_timer_interrupt();
-    // unsigned long mtime, mtimecmp;
-    // mtime = driver.timer.read_mtime();
-    // driver.timer.write_mtimecmp(mtime + 0xffffffUL);
-    // driver.clint.disable_interrupt();
+    driver.clint.enable_interrupt();
+    driver.clint.enable_timer_interrupt();
+    unsigned long mtime, mtimecmp;
+    mtime = driver.timer.read_mtime();
+    driver.timer.write_mtimecmp(mtime + 0x2ffffffUL);
+    driver.clint.disable_interrupt();
     // while(true);
+
+    process_manager.set_l2_page_table(pcb->l2_page_table);
     switch_to(&none, pcb);
+
+    while(true);
 
     // unsigned long satp = read_satp();
     // satp &= 0xfffff00000000000;

@@ -12,5 +12,8 @@ b kernel/init.cpp:50
 b write_satp
 b switch_to
 b ProcessManager::schedule
+b _machine_interrupt_normal_restore
+b save_supervisor_csr
+b restore_supervisor_csr
 layout src
 layout regs

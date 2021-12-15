@@ -36,6 +36,18 @@ extern "C" void kernel_entry()
 {
     rv64_kernel_init();
 
+    printf(
+
+        "######  ###  #####   #####        #     #\n"
+        "#     #  #  #     # #     #       #     #\n"
+        "#     #  #  #       #             #     #\n"
+        "######   #   #####  #       ##### #     #\n"
+        "#   #    #        # #              #   #\n"
+        "#    #   #  #     # #     #         # #\n"
+        "#     # ###  #####   #####           #\n"
+
+    );
+
     process_manager.initialize();
     unsigned long pid = process_manager.create_process((const char *)zero);
     // printf("zero process: %ld\n", pid);
@@ -81,14 +93,6 @@ extern "C" void kernel_entry()
     return;
 
     printf("initialization finish\n");
-
-    printf("######  ###  #####   #####        #     #\n");
-    printf("#     #  #  #     # #     #       #     #\n");
-    printf("#     #  #  #       #             #     #\n");
-    printf("######   #   #####  #       ##### #     #\n");
-    printf("#   #    #        # #              #   #\n");
-    printf("#    #   #  #     # #     #         # #\n");
-    printf("#     # ###  #####   #####           #\n");
 
     printf("print percentage: %%\n"
            "print char \"N\": %c\n"

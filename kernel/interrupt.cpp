@@ -123,8 +123,8 @@ extern "C" unsigned long machine_interrupt_handler()
                 {
                     reg = read_sepc();
                     write_mepc(reg);
-                    restore_supervisor_csr();
-                    return 0;
+                    // restore_supervisor_csr();
+                    return true;
                 }
             }
 
@@ -137,4 +137,6 @@ extern "C" unsigned long machine_interrupt_handler()
                 ;
         }
     }
+
+    return false;
 }

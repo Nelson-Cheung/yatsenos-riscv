@@ -44,6 +44,27 @@ save_supervisor_csr:
     csrr t0, scause
     sd t0, 2 * 8(sp)
 
+    addi sp, sp, -8 * 16
+
+    sd ra, 0 * 8(sp)
+
+    sd t0, 1 * 8(sp)
+    sd t1, 2 * 8(sp)
+    sd t2, 3 * 8(sp)
+    sd t3, 4 * 8(sp)
+    sd t4, 5 * 8(sp)
+    sd t5, 6 * 8(sp)
+    sd t6, 7 * 8(sp)
+
+    sd a0, 8 * 8(sp)
+    sd a1, 9 * 8(sp)
+    sd a2, 10 * 8(sp)
+    sd a3, 11 * 8(sp)
+    sd a4, 12 * 8(sp)
+    sd a5, 13 * 8(sp)
+    sd a6, 14 * 8(sp)
+    sd a7, 15 * 8(sp)
+
     csrrw sp, sscratch, sp
     csrrw sp, mscratch, sp
     ret
@@ -51,6 +72,27 @@ save_supervisor_csr:
 # extern "C" void restore_supervisor_csr();
 restore_supervisor_csr:
     csrrw sp, sscratch, sp
+
+    ld ra, 0 * 8(sp)
+
+    ld t0, 1 * 8(sp)
+    ld t1, 2 * 8(sp)
+    ld t2, 3 * 8(sp)
+    ld t3, 4 * 8(sp)
+    ld t4, 5 * 8(sp)
+    ld t5, 6 * 8(sp)
+    ld t6, 7 * 8(sp)
+
+    ld a0, 8 * 8(sp)
+    ld a1, 9 * 8(sp)
+    ld a2, 10 * 8(sp)
+    ld a3, 11 * 8(sp)
+    ld a4, 12 * 8(sp)
+    ld a5, 13 * 8(sp)
+    ld a6, 14 * 8(sp)
+    ld a7, 15 * 8(sp)
+
+    addi sp, sp, 8 * 16
     
     # 此时的sp指向supervisor栈
     ld t0, 0 * 8(sp)
@@ -138,7 +180,7 @@ switch_to:
 start_process:   
     addi t0, sp, 8 * 32
     csrrw t0, sscratch, t0
-    
+
     li t0, 0x8000000000000005
     csrw scause, t0
     ecall
@@ -279,50 +321,9 @@ read_scause:
 
 asm_interrupt_handler:
     csrrw sp, sscratch, sp
-    
-    addi sp, sp, -8 * 16
-
-    sd ra, 0 * 8(sp)
-
-    sd t0, 1 * 8(sp)
-    sd t1, 2 * 8(sp)
-    sd t2, 3 * 8(sp)
-    sd t3, 4 * 8(sp)
-    sd t4, 5 * 8(sp)
-    sd t5, 6 * 8(sp)
-    sd t6, 7 * 8(sp)
-
-    sd a0, 8 * 8(sp)
-    sd a1, 9 * 8(sp)
-    sd a2, 10 * 8(sp)
-    sd a3, 11 * 8(sp)
-    sd a4, 12 * 8(sp)
-    sd a5, 13 * 8(sp)
-    sd a6, 14 * 8(sp)
-    sd a7, 15 * 8(sp)
 
     call supervisor_interrupt_handler
-
-    ld ra, 0 * 8(sp)
-
-    ld t0, 1 * 8(sp)
-    ld t1, 2 * 8(sp)
-    ld t2, 3 * 8(sp)
-    ld t3, 4 * 8(sp)
-    ld t4, 5 * 8(sp)
-    ld t5, 6 * 8(sp)
-    ld t6, 7 * 8(sp)
-
-    ld a0, 8 * 8(sp)
-    ld a1, 9 * 8(sp)
-    ld a2, 10 * 8(sp)
-    ld a3, 11 * 8(sp)
-    ld a4, 12 * 8(sp)
-    ld a5, 13 * 8(sp)
-    ld a6, 14 * 8(sp)
-    ld a7, 15 * 8(sp)
-
-    addi sp, sp, 128
+    
     csrrw sp, sscratch, sp
 
     ecall

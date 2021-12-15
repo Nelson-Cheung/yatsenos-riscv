@@ -104,6 +104,10 @@ _machine_interrupt_handler:
 
     call machine_interrupt_handler
 
+    beq a0, zero, _machine_interrupt_normal_restore
+    call restore_supervisor_csr
+    j _machine_interrupt_exit
+_machine_interrupt_normal_restore:
     ld ra, 0 * 8(sp)
 
     ld t0, 1 * 8(sp)
@@ -123,6 +127,7 @@ _machine_interrupt_handler:
     ld a6, 14 * 8(sp)
     ld a7, 15 * 8(sp)
 
+_machine_interrupt_exit:
     addi sp, sp, 8 * 16
     csrrw sp, mscratch, sp
 

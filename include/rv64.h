@@ -95,9 +95,21 @@ struct ScratchRegister
 
 #define MSTATUS_MIE (1UL << 3)
 #define MSTATUS_MPIE (1UL << 7)
+#define MSTATUS_MPP (3UL << 11)
 
 #define MIP_STIP (1UL << 5)
 
 #define MIE_MTIE (1UL << 7)
+
+#define SSTATUS_SIE (1UL << 1)
+#define SSTATUS_SPIE (1UL << 5)
+#define SSTATUS_SPP (1UL << 8)
+
+extern "C" unsigned long read_mscratch();
+extern "C" unsigned long read_sscratch();
+extern "C" void write_mscratch(unsigned long);
+extern "C" void write_sscratch(unsigned long);
+extern "C" unsigned long read_mstatus();
+extern "C" void write_scause(unsigned long);
 
 #endif

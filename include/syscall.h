@@ -9,7 +9,4 @@
 unsigned long write(const char *s);
 void exit(long status);
 
-unsigned long do_write(const char *s);
-void do_exit(long status);
-
 #endif

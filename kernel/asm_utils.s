@@ -22,6 +22,75 @@
 .global read_satp
 .global read_mie
 .global write_mie
+.global read_mscratch
+.global read_sscratch
+.global write_mscratch
+.global write_sscratch
+.global read_mstatus
+.global write_scause
+.global save_supervisor_csr
+.global restore_supervisor_csr
+
+# extern "C" void save_supervisor_csr();
+save_supervisor_csr:
+    csrrw sp, mscratch, sp
+    
+    # 此时的sp指向supervisor栈
+    addi sp, sp, -8 * 3
+    csrr t0, sstatus
+    sd t0, 0 * 8(sp)
+    csrr t0, sepc
+    sd t0, 1 * 8(sp)
+    csrr t0, scause
+    sd t0, 2 * 8(sp)
+
+    csrrw sp, mscratch, sp
+    ret
+
+# extern "C" void restore_supervisor_csr();
+restore_supervisor_csr:
+    csrrw sp, mscratch, sp
+    
+    # 此时的sp指向supervisor栈
+    ld t0, 0 * 8(sp)
+    csrw sstatus, t0
+    ld t0, 1 * 8(sp)
+    csrw sepc, t0
+    ld t0, 2 * 8(sp)
+    csrw scause, t0
+    addi sp, sp, 8 * 3
+
+    csrrw sp, mscratch, sp
+    ret
+
+# extern "C" void write_scause(unsigned long)
+write_scause:
+    csrw scause, a0
+    ret
+
+# extern "C" unsigned long read_mstatus();
+read_mstatus:
+    csrr a0, mstatus
+    ret
+# extern "C" unsigned long read_mscratch();
+read_mscratch:
+    csrr a0, mscratch
+    ret
+
+# extern "C" unsigned long read_sscratch();
+read_sscratch:
+    csrr a0, sscratch
+    ret
+
+# extern "C" void write_mscratch(unsigned long);
+write_mscratch:
+    csrw mscratch, a0
+    ret
+
+# extern "C" void write_sscratch(unsigned long);
+write_sscratch:
+    csrw sscratch, a0
+    ret
 
 # extern "C" unsigned long read_mie();
 read_mie:
@@ -208,7 +277,7 @@ read_scause:
 asm_interrupt_handler:
     csrrw sp, sscratch, sp
     
-    addi sp, sp, -128
+    addi sp, sp, -8 * 16
 
     sd ra, 0 * 8(sp)
 
@@ -255,5 +324,3 @@ asm_interrupt_handler:
 
     ecall
     sret
-
-

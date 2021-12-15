@@ -31,10 +31,10 @@ _start:
 
     # 将M mode的中断转发到S mode中处理
     # 不支持中断嵌套
-    li t0, 0x20
+    li t0, 0x222
     csrw mideleg, t0
-    # li t0, 0xb1ff
-    # csrs medeleg, t0
+    li t0, 0xb1ff
+    csrs medeleg, t0
 
     # enable interrupt
     li t0, 0x80
@@ -52,6 +52,9 @@ _start:
     mret 
 
 _enter_supervisor_mode:
+    li t0, 1 << 1
+    csrs sstatus, t0
+
     csrw sstatus, zero
     csrw sie, zero
 

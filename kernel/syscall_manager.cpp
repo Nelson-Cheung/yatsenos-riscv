@@ -1,17 +1,35 @@
 #include "syscall.h"
+#include "syscall_manager.h"
 #include "utils.h"
-#include "object.h"
 
-unsigned long do_write(const char *s)
+unsigned long SystemCallManager::handle_syscall(unsigned long a0, unsigned long a1,
+                                                unsigned long a2, unsigned long a3,
+                                                unsigned long a4, unsigned long a5,
+                                                unsigned long a6, unsigned long a7)
 {
-    // 
-    // 这里使用printf("%s\n", s)有问题，会触发page fault，原因暂时未知
-    // 可能和可变参数机制有关？
+    switch (a0)
+    {
+    case SYSCALL_WRITE:
+        do_write((const char *)a1);
+        break;
+    
+    case SYSCALL_EXIT:
+        do_exit(a1);
+        break;
+
+    default:
+        printf("unhandled interrrupt\n");
+        break;
+    }
+}
+
+unsigned long SystemCallManager::do_write(const char *s)
+{
     printf("%s", s);
     return 0;
 }
 
-void do_exit(long status)
+void SystemCallManager::do_exit(long status)
 {
     printf("process exit\n");
     while (true)

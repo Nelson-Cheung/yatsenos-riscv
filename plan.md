@@ -295,3 +295,4 @@ GDB Cannot insert breakpoint, Cannot access memory at address XXX
 
 # 重要假设
 1. 假设时钟中断处理的时间小于时钟中断的间隔
+2. 中断嵌套无法处理

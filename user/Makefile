@@ -7,7 +7,7 @@ LD = $(PREFIX)-ld
 
 INCLUDE = ../include/
 CXX_FLAGS = -g -Wall -nostdlib -O0 -I$(INCLUDE) -fno-builtin -ffreestanding -fno-pic -mcmodel=medany -c
-TEXT = 0x200001000
+TEXT = 0xffffffc000001000
 
 AS = $(PREFIX)-as
 LD = $(PREFIX)-ld

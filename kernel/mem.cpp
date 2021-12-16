@@ -96,7 +96,7 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 
         while (current < address[i].second)
         {
-            connect_virtual_physical_address(l2_page_table,current, current, PTE_V | PTE_R | PTE_W | PTE_X);
+            connect_virtual_physical_address(l2_page_table, current, current, PTE_V | PTE_R | PTE_W | PTE_X);
             current += PAGE_SIZE;
         }
     }
@@ -148,7 +148,7 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
     l1 = (vaddr & PPN1_MASK) >> 21;
     l0 = (vaddr & PPN0_MASK) >> 12;
 
-    // if (vaddr == 0x3fffff000UL)
+    // if (vaddr == 0xFFFFFFFFFFFFe000UL)
     // {
     //     printf("%ld %ld %ld\n", l2, l1, l0);
     // }
@@ -165,6 +165,11 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
         memset((void *)new_page, 0, PAGE_SIZE);
         pte[l2] = (new_page >> 12) << 10;
         pte[l2] = pte[l2] | PTE_V;
+
+        // if (vaddr == 0xFFFFFFFFFFFFe000UL)
+        // {
+        //     printf("l2 pte: %lx\n", pte[l2]);
+        // }
     }
 
     pte = (unsigned long *)((pte[l2] >> 10) << 12);
@@ -180,9 +185,20 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
         memset((void *)new_page, 0, PAGE_SIZE);
         pte[l1] = (new_page >> 12) << 10;
         pte[l1] = pte[l1] | PTE_V;
+
+        // if (vaddr == 0xFFFFFFFFFFFFe000UL)
+        // {
+        //     printf("l1 pte: %lx\n", pte[l1]);
+        // }
     }
 
     pte = (unsigned long *)((pte[l1] >> 10) << 12);
+
+    // if (vaddr == 0xFFFFFFFFFFFFe000UL)
+    // {
+    //     printf("l0 pte: %lx\n", pte);
+    // }
+
     pte[l0] = (paddr >> 12) << 10;
     pte[l0] = pte[l0] | flags;
 }
@@ -262,4 +278,12 @@ unsigned long *MemoryManager::l0_pte_pointer(unsigned long virtual_address)
     unsigned long l0_page_table = ((*pte) & PTE_PPN_MASK) << 2;
     unsigned long l0 = (virtual_address & PPN0_MASK) >> 12;
     return (unsigned long *)(l0_page_table + sizeof(unsigned long) * l0);
+}
+
+unsigned long MemoryManager::vaddr2paddr(unsigned long virtual_address)
+{
+    unsigned long *pte = l0_pte_pointer(virtual_address);
+    unsigned long l0_page_table = ((*pte) & PTE_PPN_MASK) << 2;
+
+    return (l0_page_table | (virtual_address & 0xfff));
 }

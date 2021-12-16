@@ -66,7 +66,7 @@ public:
     unsigned long *l2_pte_pointer(unsigned long virtual_address);
     unsigned long *l1_pte_pointer(unsigned long virtual_address);
     unsigned long *l0_pte_pointer(unsigned long virtual_address);
-
+    unsigned long vaddr2paddr(unsigned long virtual_address);
 
 private:
     unsigned long init_physical_space();

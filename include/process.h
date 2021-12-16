@@ -20,7 +20,8 @@ public:
     unsigned long create_process(const char *filename);
     void set_l2_page_table(unsigned long address);
     void schedule();
-    
+    PCB *find_process_by_pid(unsigned long pid);
+    bool copy_process(PCB *parent, PCB *child);
 private:
     // 分配PCB
     PCB *allocate_pcb();

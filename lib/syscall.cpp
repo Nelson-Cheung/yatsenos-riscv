@@ -16,3 +16,8 @@ void test()
 {
     start_syscall(SYSCALL_TEST, 0, 0, 0, 0, 0, 0);
 }
+
+unsigned long fork()
+{
+    return start_syscall(SYSCALL_FORK, 0, 0, 0, 0, 0, 0);
+}

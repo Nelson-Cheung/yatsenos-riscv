@@ -12,5 +12,6 @@
 void test();
 unsigned long write(const char *s);
 void exit(long status);
+unsigned long fork();
 
 #endif

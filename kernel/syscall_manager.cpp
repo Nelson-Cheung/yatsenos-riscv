@@ -14,13 +14,17 @@ unsigned long SystemCallManager::handle_syscall(unsigned long a0, unsigned long 
     case SYSCALL_TEST:
         do_test();
         break;
-        
+
     case SYSCALL_WRITE:
         do_write((const char *)a1);
         break;
 
     case SYSCALL_EXIT:
         do_exit(a1);
+        break;
+
+    case SYSCALL_FORK:
+        return do_fork();
         break;
 
     default:
@@ -47,4 +51,24 @@ void SystemCallManager::do_exit(long status)
 void SystemCallManager::do_test()
 {
     process_manager.schedule();
+}
+
+unsigned long SystemCallManager::do_fork()
+{
+    unsigned long pid = process_manager.create_process(nullptr);
+    if (pid == -1UL)
+    {
+        return -1UL;
+    }
+
+    PCB *child = process_manager.find_process_by_pid(pid);
+    bool flag = process_manager.copy_process(process_manager.current_running_process, child);
+
+    if (!flag)
+    {
+        child->status = ProcessStatus::DEAD;
+        return -1UL;
+    }
+
+    return pid;
 }

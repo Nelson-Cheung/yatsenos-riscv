@@ -29,7 +29,7 @@ struct PCB
     unsigned long l2_page_table;        // L2页表地址
     unsigned long parent_pid;           // 父进程pid
     unsigned long return_value;         // 返回值
-    // AddressPool userVirtual;  // 用户程序虚拟地址池
+    
 };
 
 #endif

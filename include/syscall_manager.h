@@ -13,7 +13,7 @@ private:
     unsigned long do_write(const char *s);
     void do_exit(long status);
     void do_test();
-    void do_fork();
+    unsigned long do_fork();
     void do_wait();
 };
 

@@ -67,30 +67,24 @@ unsigned long *ProcessManager::create_process_l2_page_table()
     unsigned long *l2_pte = nullptr;
     unsigned long bytes_per_l2_item = 1UL << 30;
 
-    // pair<unsigned long, unsigned long> mmio, kernel;
+    pair<unsigned long, unsigned long> mmio, kernel;
 
-    // mmio.first = MMIO_BASE;
-    // mmio.second = MMIO_END;
+    mmio.first = MMIO_BASE;
+    mmio.second = MMIO_END;
 
-    // kernel.first = KERNEL_SPACE_BASE;
-    // kernel.second =  kernel.first + MEMORY_SIZE;
+    kernel.first = KERNEL_SPACE_BASE;
+    kernel.second = KERNEL_SAPCE_END;
 
-    // pair<unsigned long, unsigned long> address_set[] = {mmio, kernel};
+    pair<unsigned long, unsigned long> address_set[] = {mmio, kernel};
 
-    // for (unsigned long i = 0; i < sizeof(address_set) / sizeof(pair<unsigned long, unsigned long>); ++i)
-    // {
-    //     for (unsigned long addr = address_set[i].first; addr < address_set[i].second; addr += bytes_per_l2_item)
-    //     {
-    //         l2 = memory_manager.l2_pte_index(addr);
-    //         l2_pte = memory_manager.l2_pte_pointer(addr);
-    //         process_l2_page_table[l2] = *l2_pte;
-    //     }
-    // }
-
-    l2_pte = (unsigned long *)memory_manager.l2_page_table;
-    for (int i = 0; i < 512; ++i)
+    for (unsigned long i = 0; i < sizeof(address_set) / sizeof(pair<unsigned long, unsigned long>); ++i)
     {
-        process_l2_page_table[i] = l2_pte[i];
+        for (unsigned long addr = address_set[i].first; addr < address_set[i].second; addr += bytes_per_l2_item)
+        {
+            l2 = memory_manager.l2_pte_index(addr);
+            l2_pte = memory_manager.l2_pte_pointer(addr);
+            process_l2_page_table[l2] = *l2_pte;
+        }
     }
 
     return process_l2_page_table;
@@ -133,7 +127,9 @@ unsigned long ProcessManager::create_process(const char *filename)
 
     // printf("user stack: 0x%lx\n", USER_SAPCE_END - PAGE_SIZE);
 
+    // printf("user stack: %lx\n", USER_SAPCE_END - PAGE_SIZE);
     memory_manager.connect_virtual_physical_address(pcb->l2_page_table, new_page, USER_SAPCE_END - PAGE_SIZE, PTE_V | PTE_R | PTE_W | PTE_U);
+    // unsigned long pte = ((unsigned long *)(pcb->l2_page_table))[511];
     // memory_manager.connect_virtual_physical_address(memory_manager.l2_page_table, new_page, USER_SAPCE_END - PAGE_SIZE, PTE_V | PTE_R | PTE_W | PTE_U);
 
     // 加载程序到内存
@@ -158,6 +154,11 @@ unsigned long ProcessManager::create_process(const char *filename)
 
 unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_page_table)
 {
+    if (!filename)
+    {
+        return 0;
+    }
+
     // 没有实现文件系统
     Elf64_Ehdr *ehdr_ptr = (Elf64_Ehdr *)filename;
     Elf64_Phdr *phdr_ptr = nullptr;
@@ -212,7 +213,7 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
             }
 
             // printf("flags: %lx\n", flags);
-
+            printf("%lx %lx\n", new_page, phdr_ptr->p_vaddr + offset);
             memory_manager.connect_virtual_physical_address(l2_page_table, new_page, phdr_ptr->p_vaddr + offset, flags);
         }
     }
@@ -261,7 +262,7 @@ void ProcessManager::schedule()
 
     PCB *current = current_running_process;
     current_running_process = next;
-    
+
     ready_process.pop_front();
 
     set_l2_page_table(next->l2_page_table);
@@ -269,4 +270,76 @@ void ProcessManager::schedule()
     printf("schedule %lx to %lx\n", current, next);
 
     switch_to(current, next);
+}
+
+PCB *ProcessManager::find_process_by_pid(unsigned long pid)
+{
+    ListItem *item = all_process.front();
+    PCB *pcb = nullptr;
+
+    while (item)
+    {
+        pcb = ListItem2PCB(item, universal_tag);
+        if (pcb->pid == pid)
+        {
+            return pcb;
+        }
+        item = item->next;
+    }
+
+    return nullptr;
+}
+
+bool ProcessManager::copy_process(PCB *parent, PCB *child)
+{
+    // 这里和 create_process 联系紧密
+    // 复制PCB
+    Registers *child_registers = (Registers *)((unsigned long)child + PAGE_SIZE - sizeof(Registers));
+    Registers *parent_registers = (Registers *)((unsigned long)parent + PAGE_SIZE - sizeof(Registers));
+    memcpy(parent_registers, child_registers, sizeof(Registers));
+
+    child_registers->a0 = 0;
+    child_registers->sp = read_sscratch();
+
+    // child 会通过start_process来启动
+    child->stack = (unsigned long *)child_registers;
+    child->stack -= 4;
+    child->stack[0] = (unsigned long)start_process; // ra
+    child->stack[1] = read_sstatus();               // sstatus
+    child->stack[2] = read_sepc();                  // sepc
+    child->stack[3] = 0;                            // scause
+
+    child->status = ProcessStatus::READY;
+    child->parent_pid = parent->pid;
+    child->priority = parent->priority;
+    child->ticks_after_schedule = parent->ticks_after_schedule;
+    child->total_ticks = parent->total_ticks;
+
+    // unsigned long *parent_l2_page_table = (unsigned long *)parent->l2_page_table;
+    // unsigned long bytes_per_l2_pte = 1UL << 30;
+    unsigned long *src, *dst;
+
+    unsigned long *pte = nullptr;
+
+    for (unsigned long address = USER_SAPCE_BASE; address < USER_SAPCE_END; address += PAGE_SIZE)
+    {
+        pte = memory_manager.
+        if (!(parent_l2_page_table[i] & PTE_V))
+        {
+            continue;
+        }
+
+        src = (unsigned long *)memory_manager.vaddr2paddr(address);
+        dst = (unsigned long *)memory_manager.allocatePhysicalPages(1);
+        if (!dst)
+        {
+            return false;
+        }
+        memcpy(src, dst, PAGE_SIZE);
+
+        pte = memory_manager.l0_pte_pointer(address);
+        memory_manager.connect_virtual_physical_address(child->l2_page_table, (unsigned long)dst, address, (*pte) & 0x3ff);
+    }
+
+    return true;
 }

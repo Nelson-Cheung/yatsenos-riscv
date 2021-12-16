@@ -8,12 +8,14 @@ b supervisor_interrupt_handler
 b asm_interrupt_handler
 b _finish
 b start_process
-b kernel/init.cpp:50
+b kernel/init.cpp:89
 b write_satp
 b switch_to
 b ProcessManager::schedule
 b _machine_interrupt_normal_restore
 b save_supervisor_csr
 b restore_supervisor_csr
+b SystemCallManager::do_fork
+b kernel/process.cpp:330
 layout src
 layout regs

@@ -22,11 +22,11 @@ _start:
     csrw pmpcfg0, t0
 
     # 设置machine mode中断处理程序地址
-    la t0, _machine_interrupt_handler
+    la t0, machine_interrupt_entry
     csrw mtvec, t0
 
     # 设置S mode中断处理程序地址
-    la t0, _supervisor_interrupt_handler
+    la t0, kernel_error_entry
     csrw stvec, t0
 
     # 将M mode的中断转发到S mode中处理
@@ -47,14 +47,11 @@ _start:
     csrc mstatus, t0
     li t0, 1 << 11
     csrs mstatus, t0
-    la t0, _enter_supervisor_mode
+    la t0, enter_supervisor_mode
     csrw mepc, t0
     mret 
 
-_enter_supervisor_mode:
-    li t0, 1 << 1
-    csrs sstatus, t0
-
+enter_supervisor_mode:
     csrw sstatus, zero
     csrw sie, zero
 
@@ -75,10 +72,10 @@ _enter_supervisor_mode:
 # _enter_user_mode:
 #     ecall
 
-_finish:
-    j _finish
+kernel_error_entry:
+    j kernel_error_entry
 
-_machine_interrupt_handler:
+machine_interrupt_entry:
     # Calling Convention, ra, t0~t6, a0~a7由caller保存
     csrrw sp, mscratch, sp
     addi sp, sp, -8 * 16
@@ -104,10 +101,10 @@ _machine_interrupt_handler:
 
     call machine_interrupt_handler
 
-    beq a0, zero, _machine_interrupt_normal_restore
+    beq a0, zero, machine_interrupt_normal_restore
     call restore_supervisor_csr
-    j _machine_interrupt_exit
-_machine_interrupt_normal_restore:
+    j machine_interrupt_exit
+machine_interrupt_normal_restore:
     ld ra, 0 * 8(sp)
 
     ld t0, 1 * 8(sp)
@@ -127,14 +124,8 @@ _machine_interrupt_normal_restore:
     ld a6, 14 * 8(sp)
     ld a7, 15 * 8(sp)
 
-_machine_interrupt_exit:
+machine_interrupt_exit:
     addi sp, sp, 8 * 16
     csrrw sp, mscratch, sp
 
     mret
-
-_supervisor_interrupt_handler:
-    csrr t0, sstatus
-    csrr t1, sip
-    csrr t2, scause
-    j _supervisor_interrupt_handler

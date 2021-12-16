@@ -7,7 +7,6 @@
 #include "timer.h"
 #include "clint.h"
 #include "rv64.h"
-#include "queue.h"
 
 unsigned long TEST = 0xdeadbeef;
 
@@ -85,7 +84,7 @@ unsigned long MemoryManager::init_physical_space()
     //        kernelVirtualBitMapStart);
 }
 
-void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *address, unsigned long size)
+void MemoryManager::open_page_mechanism(const pair<unsigned long, unsigned long> *address, unsigned long size)
 {
     unsigned long current;
 
@@ -133,7 +132,7 @@ void MemoryManager::openPageMechanism(const pair<unsigned long, unsigned long> *
 
     write_satp(satp);
 
-    unsigned long addr = (unsigned long)&TEST;
+    // unsigned long addr = (unsigned long)&TEST;
     // printf("%lx %lx %lx\n", *l2_pte_pointer(addr), *l1_pte_pointer(addr), *l0_pte_pointer(addr));
 
     // unsigned long paddr = addr & 0xfffUL;
@@ -156,7 +155,7 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
     pte = ((unsigned long *)l2_page_table);
     if ((pte[l2] & PTE_V) == 0)
     {
-        new_page = allocatePhysicalPages(1);
+        new_page = allocate_physical_pages(1);
         if (new_page == -1UL)
         {
             printf("no enough space\n");
@@ -176,7 +175,7 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
 
     if ((pte[l1] & PTE_V) == 0)
     {
-        new_page = allocatePhysicalPages(1);
+        new_page = allocate_physical_pages(1);
         if (new_page == -1UL)
         {
             printf("no enough space\n");
@@ -206,7 +205,7 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
 void MemoryManager::initialize()
 {
     init_physical_space();
-    l2_page_table = allocatePhysicalPages(1);
+    l2_page_table = allocate_physical_pages(1);
     memset((void *)l2_page_table, 0, PAGE_SIZE);
 
     pair<unsigned long, unsigned long> clint, uart, kernel;
@@ -221,10 +220,10 @@ void MemoryManager::initialize()
     kernel.second = kernel.first + MEMORY_SIZE;
 
     pair<unsigned long, unsigned long> address[] = {clint, uart, kernel};
-    openPageMechanism(address, sizeof(address) / sizeof(pair<unsigned long, unsigned long>));
+    open_page_mechanism(address, sizeof(address) / sizeof(pair<unsigned long, unsigned long>));
 }
 
-unsigned long MemoryManager::allocatePhysicalPages(unsigned long amount)
+unsigned long MemoryManager::allocate_physical_pages(unsigned long amount)
 {
     unsigned long start = -1;
 
@@ -233,12 +232,12 @@ unsigned long MemoryManager::allocatePhysicalPages(unsigned long amount)
     return (start == -1UL) ? 0 : start;
 }
 
-void MemoryManager::releasePhysicalPages(unsigned long paddr, unsigned long amount)
+void MemoryManager::release_physical_pages(unsigned long paddr, unsigned long amount)
 {
     physical_address_pool.release(paddr, amount);
 }
 
-unsigned long MemoryManager::getTotalMemory()
+unsigned long MemoryManager::get_total_memory()
 {
     return this->totalMemory;
 }

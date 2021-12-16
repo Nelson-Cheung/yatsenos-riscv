@@ -14,10 +14,11 @@ int main()
     else if (pid > 0)
     {
         printf("父进程fork返回, pid: %ld\n", pid);
-        while(true);
     }
     else
     {
         printf("发生错误\n");
     }
+
+    while(true);
 }

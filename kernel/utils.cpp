@@ -162,7 +162,6 @@ int printf(const char *const fmt, ...)
                 // counter += stdio.print(va_arg(ap, const char *));
                 driver.uart.putstr(buffer);
                 driver.uart.putstr(va_arg(ap, char *));
-                int j = i;
                 break;
             }
             case 'd':
@@ -237,8 +236,4 @@ void memcpy(void *src, void *dst, unsigned long length)
     {
         ((char *)dst)[i] = ((char *)src)[i];
     }
-}
-
-unsigned long strlen(const char *s)
-{
 }

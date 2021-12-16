@@ -44,16 +44,16 @@ public:
 
     // 从type类型的物理地址池中分配count个连续的页
     // 成功，返回起始地址；失败，返回0
-    unsigned long allocatePhysicalPages(unsigned long count);
+    unsigned long allocate_physical_pages(unsigned long count);
 
     // 释放从paddr开始的count个物理页
-    void releasePhysicalPages(unsigned long startAddress, unsigned long count);
+    void release_physical_pages(unsigned long startAddress, unsigned long count);
 
     // 获取内存总容量
-    unsigned long getTotalMemory();
+    unsigned long get_total_memory();
 
     // 开启分页机制
-    void openPageMechanism(const pair<unsigned long, unsigned long> *address, unsigned long size);
+    void open_page_mechanism(const pair<unsigned long, unsigned long> *address, unsigned long size);
 
     // 建立虚拟地址到物理地址的联系
     void connect_virtual_physical_address(unsigned long l2_page_table, unsigned long paddr, unsigned long vaddr, unsigned long flags);

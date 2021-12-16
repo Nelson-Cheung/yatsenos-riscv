@@ -1,4 +1,4 @@
-.global asm_interrupt_handler
+.global supervisor_interrupt_entry
 .global write_stvec
 .global read_stvec
 .global write_sstatus
@@ -15,7 +15,6 @@
 .global read_sip
 .global read_mepc
 .global write_mepc
-.global supervisor_timer_interrupt_done
 .global write_satp
 .global switch_to 
 .global start_process
@@ -237,18 +236,6 @@ write_mepc:
     csrw mepc, a0
     ret
 
-# extern "C" void supervisor_timer_interrupt_done();
-supervisor_timer_interrupt_done:
-    addi sp, sp, -8
-    sd ra, 0(sp)
-
-    csrr a0, scause
-    ecall
-
-    ld ra, 0(sp)
-    addi sp, sp, 8
-    ret
-
 # extern "C" void write_sip(unsigned long);
 write_sip:
     csrw sip, a0
@@ -319,7 +306,7 @@ read_scause:
     csrr a0, scause
     ret
 
-asm_interrupt_handler:
+supervisor_interrupt_entry:
     # 顺序十分重要
     csrrw sp, sscratch, sp
     addi sp, sp, -8 * 32

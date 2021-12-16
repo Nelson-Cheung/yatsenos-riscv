@@ -20,7 +20,4 @@ public:
     void disable_external_interrupt();
 };
 
-extern "C" void machine_interrupt_redirect();
-extern "C" void machine_interrupt_redirect_done();
-
 #endif

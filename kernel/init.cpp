@@ -6,6 +6,7 @@
 #include "constant.h"
 #include "process.h"
 #include "syscall_manager.h"
+#include "syscall.h"
 
 unsigned long stack0[4096];
 unsigned long mstack0[4096];
@@ -19,18 +20,13 @@ SystemCallManager syscall_manager;
 extern "C" void rv64_kernel_init()
 {
     driver.initialize();
-    driver.clint.set_interrupt_handler((unsigned long)asm_interrupt_handler);
-
-    // printf("%lx\n", &driver);
-    // printf("%lx\n", &memory_manager);
-    // printf("%lx\n", &process_manager);
+    driver.clint.set_interrupt_handler((unsigned long)supervisor_interrupt_entry);
 
     memory_manager.initialize();
+    process_manager.initialize();
 }
 
-extern unsigned char zero[];
-
-#include "syscall.h"
+#include "user_process.h"
 
 extern "C" void kernel_entry()
 {
@@ -48,7 +44,6 @@ extern "C" void kernel_entry()
 
     );
 
-    process_manager.initialize();
     unsigned long pid = process_manager.create_process((const char *)zero);
     // printf("zero process: %ld\n", pid);
 
@@ -75,7 +70,7 @@ extern "C" void kernel_entry()
 
     driver.clint.enable_interrupt();
     driver.clint.enable_timer_interrupt();
-    unsigned long mtime, mtimecmp;
+    unsigned long mtime;
     mtime = driver.timer.read_mtime();
     driver.timer.write_mtimecmp(mtime + 0x2ffffffUL);
     // driver.clint.disable_interrupt();

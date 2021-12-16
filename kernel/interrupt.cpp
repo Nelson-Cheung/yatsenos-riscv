@@ -63,6 +63,8 @@ extern "C" unsigned long supervisor_interrupt_handler(
             break;
         }
     }
+
+    return 0;
 }
 
 extern "C" unsigned long machine_interrupt_handler()

@@ -11,12 +11,6 @@ char PCB_SET[PCB_SIZE * MAX_PROGRAM_AMOUNT]; // 存放PCB的数组，预留了MA
 bool PCB_SET_STATUS[MAX_PROGRAM_AMOUNT];     // PCB的分配状态，true表示已经分配，false表示未分配。
 extern unsigned long TEST;
 
-void process_exit()
-{
-    while (true)
-        ;
-}
-
 void ProcessManager::initialize()
 {
     all_process.initialize();
@@ -54,7 +48,7 @@ void ProcessManager::release_pcb(PCB *pcb)
 
 unsigned long *ProcessManager::create_process_l2_page_table()
 {
-    unsigned long new_page = memory_manager.allocatePhysicalPages(1);
+    unsigned long new_page = memory_manager.allocate_physical_pages(1);
     if (new_page == -1UL)
     {
         return nullptr;
@@ -103,9 +97,9 @@ unsigned long ProcessManager::create_process(const char *filename)
     pcb->ticks_after_schedule = 0;
     pcb->l2_page_table = (unsigned long)create_process_l2_page_table();
 
-    unsigned long *page_table = (unsigned long *)pcb->l2_page_table;
-    unsigned long addr = (unsigned long)&TEST;
-    unsigned long index = memory_manager.l2_pte_index(addr);
+    // unsigned long *page_table = (unsigned long *)pcb->l2_page_table;
+    // unsigned long addr = (unsigned long)&TEST;
+    // unsigned long index = memory_manager.l2_pte_index(addr);
 
     // printf("%lx %lx\n", page_table, page_table[index]);
 
@@ -119,7 +113,7 @@ unsigned long ProcessManager::create_process(const char *filename)
 
     // 分配用户栈
     registers->sp = USER_SAPCE_END;
-    unsigned long new_page = memory_manager.allocatePhysicalPages(1);
+    unsigned long new_page = memory_manager.allocate_physical_pages(1);
     if (new_page == -1UL)
     {
         return -1UL;
@@ -179,7 +173,7 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
         current = filename + phdr_ptr->p_offset;
         for (unsigned long offset = 0; offset < phdr_ptr->p_filesz; offset += PAGE_SIZE)
         {
-            new_page = memory_manager.allocatePhysicalPages(1);
+            new_page = memory_manager.allocate_physical_pages(1);
             if (new_page == -1UL)
             {
                 return -1UL;
@@ -317,9 +311,9 @@ bool ProcessManager::copy_process(PCB *parent, PCB *child)
 
     // unsigned long *parent_l2_page_table = (unsigned long *)parent->l2_page_table;
     // unsigned long bytes_per_l2_pte = 1UL << 30;
-    unsigned long *src, *dst;
+    // unsigned long *src, *dst;
 
-    unsigned long *pte = nullptr;
+    // unsigned long *pte = nullptr;
 
     unsigned long start = memory_manager.l2_pte_index(USER_SAPCE_BASE);
     unsigned long end = memory_manager.l2_pte_index(USER_SAPCE_END);
@@ -351,7 +345,7 @@ bool ProcessManager::copy_process(PCB *parent, PCB *child)
                     continue;
                 }
 
-                child_physical_page_table = (unsigned long *)memory_manager.allocatePhysicalPages(1);
+                child_physical_page_table = (unsigned long *)memory_manager.allocate_physical_pages(1);
                 if (!child_physical_page_table)
                 {
                     return false;

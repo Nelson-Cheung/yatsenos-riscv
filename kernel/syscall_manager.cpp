@@ -33,6 +33,8 @@ unsigned long SystemCallManager::handle_syscall(unsigned long a0, unsigned long 
             ;
         break;
     }
+
+    return 0;
 }
 
 unsigned long SystemCallManager::do_write(const char *s)

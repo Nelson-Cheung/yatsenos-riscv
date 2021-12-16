@@ -1,24 +1,23 @@
+#include "stdio.h"
 #include "syscall.h"
 
 int main()
 {
-    write("你好，进程!\n");
+    printf("你好，进程!\n");
 
     unsigned long pid = fork();
+
     if (pid == 0)
     {
-        write("子进程启动");
+        printf("子进程启动, pid: %ld\n", pid);
     }
     else if (pid > 0)
     {
-        write("父进程fork返回");
+        printf("父进程fork返回, pid: %ld\n", pid);
+        while(true);
     }
     else
     {
-        write("error\n");
-    }
-
-    while (true)
-    {
+        printf("发生错误\n");
     }
 }

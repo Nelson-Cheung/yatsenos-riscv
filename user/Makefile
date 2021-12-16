@@ -17,6 +17,9 @@ OBJ = proc_zero.cpp
 
 all: $(OBJ)
 
+stdio.o: stdio.cpp stdio.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
 lib_utils.o: lib_utils.s
 	$(AS) -g $< -o $@
 
@@ -29,7 +32,7 @@ gen_binary.out: gen_binary.cpp
 zero.o: zero.cpp
 	$(CXX) $(CXX_FLAGS) $< -o $@
 
-proc_zero.elf: zero.o syscall.o lib_utils.o
+proc_zero.elf: zero.o syscall.o lib_utils.o stdio.o
 	$(LD) $^ -e main -Ttext $(TEXT) -o $@
 
 proc_zero.cpp: proc_zero.elf gen_binary.out

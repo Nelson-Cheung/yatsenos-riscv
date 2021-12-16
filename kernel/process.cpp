@@ -305,7 +305,7 @@ bool ProcessManager::copy_process(PCB *parent, PCB *child)
     child->stack = (unsigned long *)child_registers;
     child->stack -= 4;
     child->stack[0] = (unsigned long)start_process; // ra
-    child->stack[1] = read_sstatus();               // sstatus
+    child->stack[1] = read_sstatus() & (~(1UL << 1));               // sstatus
     child->stack[2] = read_sepc();                  // sepc
     child->stack[3] = 0;                            // scause
 
@@ -321,24 +321,54 @@ bool ProcessManager::copy_process(PCB *parent, PCB *child)
 
     unsigned long *pte = nullptr;
 
-    for (unsigned long address = USER_SAPCE_BASE; address < USER_SAPCE_END; address += PAGE_SIZE)
+    unsigned long start = memory_manager.l2_pte_index(USER_SAPCE_BASE);
+    unsigned long end = memory_manager.l2_pte_index(USER_SAPCE_END);
+
+    unsigned long *parent_l2_page_table, *parent_l1_page_table, *parent_l0_page_table, *parent_physical_page_table, *child_physical_page_table;
+    unsigned long virtual_address;
+
+    parent_l2_page_table = (unsigned long *)parent->l2_page_table;
+    for (unsigned long i2 = start; i2 <= end; ++i2)
     {
-        pte = memory_manager.
-        if (!(parent_l2_page_table[i] & PTE_V))
+        if (!(parent_l2_page_table[i2] & PTE_V))
         {
             continue;
         }
 
-        src = (unsigned long *)memory_manager.vaddr2paddr(address);
-        dst = (unsigned long *)memory_manager.allocatePhysicalPages(1);
-        if (!dst)
+        parent_l1_page_table = (unsigned long *)((parent_l2_page_table[i2] & PTE_PPN_MASK) << 2);
+        for (unsigned long i1 = 0; i1 < 512; ++i1)
         {
-            return false;
-        }
-        memcpy(src, dst, PAGE_SIZE);
+            if (!(parent_l1_page_table[i1] & PTE_V))
+            {
+                continue;
+            }
 
-        pte = memory_manager.l0_pte_pointer(address);
-        memory_manager.connect_virtual_physical_address(child->l2_page_table, (unsigned long)dst, address, (*pte) & 0x3ff);
+            parent_l0_page_table = (unsigned long *)((parent_l1_page_table[i1] & PTE_PPN_MASK) << 2);
+            for (unsigned long i0 = 0; i0 < 512; ++i0)
+            {
+                if (!(parent_l0_page_table[i0] & PTE_V))
+                {
+                    continue;
+                }
+
+                child_physical_page_table = (unsigned long *)memory_manager.allocatePhysicalPages(1);
+                if (!child_physical_page_table)
+                {
+                    return false;
+                }
+                parent_physical_page_table = (unsigned long *)((parent_l0_page_table[i0] & PTE_PPN_MASK) << 2);
+                memcpy(parent_physical_page_table, child_physical_page_table, PAGE_SIZE);
+                // Sv39
+                virtual_address = (i2 << 30) | (i1 << 21) | (i0 << 12);
+                if (virtual_address & (1UL << 38))
+                {
+                    virtual_address |= 0xffffff8000000000UL;
+                }
+                printf("copy %lx\n", virtual_address);
+                memory_manager.connect_virtual_physical_address(child->l2_page_table, (unsigned long)child_physical_page_table,
+                                                                virtual_address, parent_l0_page_table[i0] & 0x3ff);
+            }
+        }
     }
 
     return true;

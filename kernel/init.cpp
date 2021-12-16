@@ -73,11 +73,11 @@ extern "C" void kernel_entry()
 
     // while(true);
 
-    // driver.clint.enable_interrupt();
-    // driver.clint.enable_timer_interrupt();
-    // unsigned long mtime, mtimecmp;
-    // mtime = driver.timer.read_mtime();
-    // driver.timer.write_mtimecmp(mtime + 0x2ffffffUL);
+    driver.clint.enable_interrupt();
+    driver.clint.enable_timer_interrupt();
+    unsigned long mtime, mtimecmp;
+    mtime = driver.timer.read_mtime();
+    driver.timer.write_mtimecmp(mtime + 0x2ffffffUL);
     // driver.clint.disable_interrupt();
     // while(true);
 

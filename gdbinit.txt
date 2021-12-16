@@ -16,6 +16,6 @@ b _machine_interrupt_normal_restore
 b save_supervisor_csr
 b restore_supervisor_csr
 b SystemCallManager::do_fork
-b kernel/process.cpp:330
+b kernel/process.cpp:362
 layout src
 layout regs

@@ -43,9 +43,9 @@ unsigned long SystemCallManager::do_write(const char *s)
 
 void SystemCallManager::do_exit(long status)
 {
-    printf("process exit\n");
-    while (true)
-        ;
+    printf("process %ld exit\n", process_manager.current_running_process->pid);
+    process_manager.current_running_process->status = ProcessStatus::DEAD;
+    process_manager.schedule();
 }
 
 void SystemCallManager::do_test()

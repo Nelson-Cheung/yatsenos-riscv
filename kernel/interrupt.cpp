@@ -22,7 +22,7 @@ extern "C" unsigned long supervisor_interrupt_handler(
         case 5: // timer
         {
             // supervisor 处理时钟中断
-            printf("timer interrupt\n");
+            // printf("timer interrupt\n");
             unsigned long mtime = driver.timer.read_mtime();
             driver.timer.write_mtimecmp(mtime + TIME_INTERRUPT_DURATION);
             process_manager.schedule();
@@ -81,7 +81,7 @@ extern "C" unsigned long machine_interrupt_handler()
         if (mcause == 7)
         {
             // 转发timer中断到S mode处理，关闭timer中断
-            printf("delegate machine timer interrupt\n");
+            // printf("delegate machine timer interrupt\n");
 
             driver.timer.write_mtimecmp(~(1UL << 63));
 

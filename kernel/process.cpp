@@ -207,7 +207,7 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
             }
 
             // printf("flags: %lx\n", flags);
-            printf("%lx %lx\n", new_page, phdr_ptr->p_vaddr + offset);
+            // printf("%lx %lx\n", new_page, phdr_ptr->p_vaddr + offset);
             memory_manager.connect_virtual_physical_address(l2_page_table, new_page, phdr_ptr->p_vaddr + offset, flags);
         }
     }
@@ -261,7 +261,7 @@ void ProcessManager::schedule()
 
     set_l2_page_table(next->l2_page_table);
 
-    printf("schedule %lx to %lx\n", current, next);
+    printf("schedule process %ld to process %ld\n", current->pid, next->pid);
 
     switch_to(current, next);
 }
@@ -358,7 +358,7 @@ bool ProcessManager::copy_process(PCB *parent, PCB *child)
                 {
                     virtual_address |= 0xffffff8000000000UL;
                 }
-                printf("copy %lx\n", virtual_address);
+                // printf("copy %lx\n", virtual_address);
                 memory_manager.connect_virtual_physical_address(child->l2_page_table, (unsigned long)child_physical_page_table,
                                                                 virtual_address, parent_l0_page_table[i0] & 0x3ff);
             }

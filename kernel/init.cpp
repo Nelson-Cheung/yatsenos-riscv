@@ -73,6 +73,8 @@ extern "C" void kernel_entry()
     process_manager.ready_process.pop_front();
     pcb->status = ProcessStatus::RUNNING;
     process_manager.set_l2_page_table(pcb->l2_page_table);
+    // BUG!!!
+    memory_manager.l2_page_table = pcb->l2_page_table;
 
     process_manager.current_running_process = pcb;
 

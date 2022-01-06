@@ -4,7 +4,7 @@
 #include "driver.h"
 #include "utils.h"
 #include "rv64.h"
-#include <elf.h>
+#include "elf.h"
 
 const unsigned long PCB_SIZE = PAGE_SIZE;    // PCB的大小，4KB。
 char PCB_SET[PCB_SIZE * MAX_PROGRAM_AMOUNT]; // 存放PCB的数组，预留了MAX_PROGRAM_AMOUNT个PCB的大小空间。
@@ -157,7 +157,7 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
     Elf64_Ehdr *ehdr_ptr = (Elf64_Ehdr *)filename;
     Elf64_Phdr *phdr_ptr = nullptr;
     unsigned long new_page, flags;
-    const char *current;
+    bool is_align = true;
 
     for (int i = 0; i < ehdr_ptr->e_phnum; ++i)
     {
@@ -168,10 +168,17 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
             continue;
         }
 
+        if (phdr_ptr->p_vaddr % PAGE_SIZE) 
+        {
+            is_align = false;
+        }
+
         // printf("%d: %lx\n", i, phdr_ptr->p_vaddr);
 
-        current = filename + phdr_ptr->p_offset;
-        for (unsigned long offset = 0; offset < phdr_ptr->p_filesz; offset += PAGE_SIZE)
+        unsigned long offset = 0;
+        const char *current = filename + phdr_ptr->p_offset;
+
+        while (offset < phdr_ptr->p_filesz)
         {
             new_page = memory_manager.allocate_physical_pages(1);
             if (new_page == -1UL)
@@ -179,14 +186,19 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
                 return -1UL;
             }
             memset((void *)new_page, 0, PAGE_SIZE);
-
-            if ((phdr_ptr->p_filesz - offset) >= PAGE_SIZE)
+            
+            if (!is_align) 
             {
-                memcpy((void *)(current + offset), (void *)new_page, PAGE_SIZE);
-            }
-            else
-            {
-                memcpy((void *)(current + offset), (void *)new_page, phdr_ptr->p_filesz - offset);
+                unsigned long offset_in_page = phdr_ptr->p_vaddr % PAGE_SIZE;
+                if (phdr_ptr->p_filesz >= (PAGE_SIZE - offset_in_page)) {
+                    memcpy((void *)current, (void *)(new_page + offset_in_page), PAGE_SIZE - offset_in_page);
+                } else {
+                    memcpy((void *)current, (void *)(new_page + offset_in_page), phdr_ptr->p_filesz);
+                }
+                offset = PAGE_SIZE - offset_in_page;
+                memory_manager.connect_virtual_physical_address(l2_page_table, new_page, phdr_ptr->p_vaddr - offset_in_page, flags);
+                is_align = true;
+                continue;
             }
 
             flags = PTE_V | PTE_U;
@@ -208,7 +220,21 @@ unsigned long ProcessManager::load_elf(const char *filename, unsigned long l2_pa
 
             // printf("flags: %lx\n", flags);
             // printf("%lx %lx\n", new_page, phdr_ptr->p_vaddr + offset);
+            // printf("new page: %lx\n", phdr_ptr->p_vaddr + offset);
+
             memory_manager.connect_virtual_physical_address(l2_page_table, new_page, phdr_ptr->p_vaddr + offset, flags);
+
+            if ((phdr_ptr->p_filesz - offset) >= PAGE_SIZE)
+            {
+                memcpy((void *)(current + offset), (void *)new_page, PAGE_SIZE);
+                offset += PAGE_SIZE;
+            }
+            else
+            {
+                memcpy((void *)(current + offset), (void *)new_page, phdr_ptr->p_filesz - offset);
+                offset += phdr_ptr->p_filesz - offset;
+            }
+
         }
     }
 

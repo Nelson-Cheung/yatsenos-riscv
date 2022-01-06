@@ -20,7 +20,7 @@ _start:
     csrw pmpaddr0, t0
     li t0, 0x0f
     csrw pmpcfg0, t0
-
+    
     # 设置machine mode中断处理程序地址
     la t0, machine_interrupt_entry
     csrw mtvec, t0
@@ -31,7 +31,7 @@ _start:
 
     # 将M mode的中断转发到S mode中处理
     # 不支持中断嵌套
-    li t0, 0x222
+    li t0, 0xfff
     csrw mideleg, t0
     li t0, 0xb1ff
     csrs medeleg, t0
@@ -75,6 +75,7 @@ enter_supervisor_mode:
 kernel_error_entry:
     j kernel_error_entry
 
+.align 2
 machine_interrupt_entry:
     # Calling Convention, ra, t0~t6, a0~a7由caller保存
     csrrw sp, mscratch, sp

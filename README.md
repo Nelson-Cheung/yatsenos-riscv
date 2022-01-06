@@ -3,6 +3,17 @@
 > + It is not be guaranteed that there are no bugs in the project :(
 > + This REAME is too concise to understand the project. The detailed one is coming soon :) 
 
+# Todo
+
+- [ ] LLVM is all you need.
+    - [x] clang取代g++
+    - [x] ld.lld取代ld
+    - [ ] lldb取代gdb
+- [ ] virtio
+    - [ ] 读写hda
+    - [ ] 文件系统
+
+
 # Quick Start
 
 首先安装riscv交叉编译工具链，安装方法可见博客 https://blog.nelson-cheung.cn/2021/12/16/riscv-toolchain-install-guide/ 。在项目目录下执行如下命令。

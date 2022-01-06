@@ -1,23 +1,23 @@
 VPATH = driver include kernel user lib
 
 PREFIX = riscv64-unknown-linux-gnu
-CXX = clang
+CXX = $(PREFIX)-g++
 INCLUDE = include
-CXX_FLAGS = -c -g -Wall -I$(INCLUDE) -mno-relax -march=rv64imafdc --target=riscv64 -mcmodel=medany -O0
- 
+CXX_FLAGS = -c -g -Wall -nostdlib -I$(INCLUDE) -mcmodel=medany -ffreestanding -nostartfiles
+
 USER_TEXT = 0xffffffc000001000
 
-LD = ld.lld
+AS = $(PREFIX)-as
+LD = $(PREFIX)-ld
 
 TARGET = kernel.elf
 OBJ = start.o
 OBJ += driver.o uart.o init.o asm_utils.o interrupt.o clint.o timer.o utils.o \
 address_pool.o bitmap.o mem.o \
-list.o process.o proc_zero.o\
+list.o process.o proc_zero.o \
 syscall_manager.o
 
 $(TARGET) : $(OBJ)
-	echo "Done"
 	$(LD) $^ -Ttext 0x80000000 -e _start -o $@
 	# $(LD) $^ -T kernel.ld -o $@
 
@@ -28,6 +28,9 @@ list.o: list.cpp list.h
 	$(CXX) $(CXX_FLAGS) $< -o $@
 
 process.o: process.cpp process.h pcb.h
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+proc_zero.o: proc_zero.cpp
 	$(CXX) $(CXX_FLAGS) $< -o $@
 
 address_pool.o: address_pool.cpp address_pool.h
@@ -52,7 +55,7 @@ interrupt.o: interrupt.cpp interrupt.h
 	$(CXX) $(CXX_FLAGS) $< -o $@
 
 asm_utils.o: asm_utils.s
-	$(CXX) $(CXX_FLAGS) $< -o $@
+	$(AS) -g $< -o $@
 
 driver.o : driver.cpp driver.h
 	$(CXX) $(CXX_FLAGS) $< -o $@
@@ -64,7 +67,7 @@ init.o : init.cpp
 	$(CXX) $(CXX_FLAGS) $< -o $@
 
 start.o : start.s 
-	$(CXX) $(CXX_FLAGS) $< -o $@
+	$(AS) -g $< -o $@
 
 debug : $(TARGET)
 	qemu-system-riscv64 -machine virt -kernel $(TARGET) -bios none -nographic -s -S
@@ -77,8 +80,7 @@ stdio.o: stdio.cpp stdio.h
 	$(CXX) $(CXX_FLAGS) $< -o $@
 
 lib_utils.o: lib_utils.s
-	$(CXX) $(CXX_FLAGS) $< -o $@
-	
+	$(AS) -g $< -o $@
 
 syscall.o: syscall.cpp
 	$(CXX) $(CXX_FLAGS) $< -o $@
@@ -95,7 +97,5 @@ proc_zero.elf: zero.o syscall.o lib_utils.o stdio.o
 proc_zero.cpp: proc_zero.elf gen_binary.out
 	./gen_binary.out $< $@ zero
 
-proc_zero.o: proc_zero.cpp
-	$(CXX) $(CXX_FLAGS) $< -o $@
 clean :
 	rm -fr *.o *.elf *.out *.cpp

@@ -147,10 +147,10 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
     l1 = (vaddr & PPN1_MASK) >> 21;
     l0 = (vaddr & PPN0_MASK) >> 12;
 
-    // if (vaddr == 0xFFFFFFFFFFFFe000UL)
-    // {
-    //     printf("%ld %ld %ld\n", l2, l1, l0);
-    // }
+    if (vaddr == 0xFFFFFFC000002928UL)
+    {
+        printf("%ld %ld %ld\n", l2, l1, l0);
+    }
 
     pte = ((unsigned long *)l2_page_table);
     if ((pte[l2] & PTE_V) == 0)
@@ -164,12 +164,12 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
         memset((void *)new_page, 0, PAGE_SIZE);
         pte[l2] = (new_page >> 12) << 10;
         pte[l2] = pte[l2] | PTE_V;
-
-        // if (vaddr == 0xFFFFFFFFFFFFe000UL)
-        // {
-        //     printf("l2 pte: %lx\n", pte[l2]);
-        // }
     }
+
+        if (vaddr == 0xFFFFFFC000002928UL)
+        {
+            printf("l2 pte: %lx\n", pte[l2]);
+        }
 
     pte = (unsigned long *)((pte[l2] >> 10) << 12);
 
@@ -185,21 +185,28 @@ void MemoryManager::connect_virtual_physical_address(unsigned long l2_page_table
         pte[l1] = (new_page >> 12) << 10;
         pte[l1] = pte[l1] | PTE_V;
 
-        // if (vaddr == 0xFFFFFFFFFFFFe000UL)
-        // {
-        //     printf("l1 pte: %lx\n", pte[l1]);
-        // }
+
     }
+
+        if (vaddr == 0xFFFFFFC000002928UL)
+        {
+            printf("l1 pte: %lx\n", pte[l1]);
+        }
 
     pte = (unsigned long *)((pte[l1] >> 10) << 12);
 
-    // if (vaddr == 0xFFFFFFFFFFFFe000UL)
-    // {
-    //     printf("l0 pte: %lx\n", pte);
-    // }
+    if (vaddr == 0xFFFFFFC000002928UL)
+    {
+        printf("l0 pte: %lx\n", pte);
+    }
 
     pte[l0] = (paddr >> 12) << 10;
     pte[l0] = pte[l0] | flags;
+
+    if (vaddr == 0xFFFFFFC000002928UL)
+    {
+        printf("l0 pte: %lx\n", pte);
+    }
 }
 
 void MemoryManager::initialize()

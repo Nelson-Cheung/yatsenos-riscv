@@ -306,6 +306,7 @@ read_scause:
     csrr a0, scause
     ret
 
+.align 2
 supervisor_interrupt_entry:
     # 顺序十分重要
     csrrw sp, sscratch, sp
